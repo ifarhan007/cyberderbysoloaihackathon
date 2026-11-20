@@ -130,8 +130,7 @@ Rankings announced at the **Grand Award Ceremony**:
 📅 **Tuesday, 24 November 2026 · 03:35 PM – 05:00 PM**  
 📍 12th Floor Hall, UCSI University Bangladesh Campus
 
-**Prizes:** Champion · 1st Runner-Up · 2nd Runner-Up · Accredited Certificates · Prize Money  
-**Bonus:** Top engineers earn direct internship/recruitment visibility with MindSpark & Sigmind
+**Prizes:** Champion · 1st Runner-Up · 2nd Runner-Up · Accredited Certificates · Prize Money
 
 ---
 
@@ -144,7 +143,7 @@ Rankings announced at the **Grand Award Ceremony**:
 | General Secretary | Farhana Akter |
 
 **Email:** uitc.bd@ucsiuniversity.edu.my  
-**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** UITC UCSI BD
+**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** linkedin.com/company/uitc-ucsi-bd
 
 ---
 
