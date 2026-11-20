@@ -1,0 +1,16 @@
+ip_address,threat_category,threat_actor,confidence,first_seen,last_seen,associated_malware,is_tor_exit_node,geo_country,notes
+185.220.101.47,C2_BEACON,APT-FinStealer,HIGH,2026-03-12,2026-11-10,BankBot_v3,FALSE,RU,Active C2 node used in BankBot campaigns targeting SEA banks
+91.108.4.212,RANSOMWARE_C2,LockBit-Affiliate,CRITICAL,2026-07-01,2026-11-14,LockBit3,FALSE,NL,Confirmed LockBit 3.0 distribution node
+198.98.56.149,TOR_EXIT,ANONYMOUS,LOW,2025-01-01,2026-11-15,,TRUE,US,Tor exit node — high false positive rate
+45.142.212.100,CREDENTIAL_STUFFING,BulkCred-Net,HIGH,2026-09-01,2026-11-13,,FALSE,CN,Linked to credential stuffing ring targeting fintech APIs
+104.21.8.219,DATA_EXFIL,APT-FinStealer,HIGH,2026-10-05,2026-11-15,,FALSE,UA,Exfiltration staging server confirmed in prior NovaPay incident
+103.75.190.8,PHISHING_INFRA,ScamOps-SEA,CRITICAL,2026-08-20,2026-11-11,,FALSE,BD,Known phishing infrastructure operating against BD banks
+216.58.192.78,CDN_LEGITIMATE,GOOGLE,NONE,,,,,US,Google CDN — confirmed safe
+52.87.144.5,CDN_LEGITIMATE,AWS_CLOUDFRONT,NONE,,,,,US,AWS CloudFront — confirmed safe
+172.16.254.1,INTERNAL_INFRA,NOVAPAY_INTERNAL,NONE,,,,,BD,Internal NovaPay monitoring probe — always safe
+10.0.0.253,INTERNAL_INFRA,NOVAPAY_INTERNAL,NONE,,,,,BD,Internal NovaPay core banking gateway — always safe
+known_phishing_domains,,,,,,,,,
+novapay-secure-login.com,PHISHING_DOMAIN,ScamOps-SEA,CRITICAL,2026-10-01,2026-11-10,,FALSE,BD,Typosquatting NovaPay brand for credential harvest
+novapay-verify.net,PHISHING_DOMAIN,ScamOps-SEA,HIGH,2026-09-15,2026-11-08,,FALSE,SG,
+n0vapay.bank,PHISHING_DOMAIN,ScamOps-SEA,CRITICAL,2026-10-20,2026-11-14,,FALSE,MY,Uses zero instead of letter O
+internal-novapay-it.com,PHISHING_DOMAIN,APT-FinStealer,HIGH,2026-11-01,2026-11-15,,FALSE,RU,Used in spear-phishing of NovaPay IT staff

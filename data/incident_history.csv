@@ -1,0 +1,10 @@
+entity_id,entity_type,incident_date,incident_category,severity,resolution,fraud_flag_active,notes
+CUST-9921,customer,2026-09-14,card_fraud,P2_HIGH,auto_remediate,TRUE,Card tested with micro-transactions; card was replaced
+CUST-9921,customer,2026-10-02,account_takeover,P1_CRITICAL,escalate_to_soc,TRUE,Follow-up ATO attempt after September card fraud; account frozen temporarily
+CUST-4471,customer,2026-08-30,phishing,P3_MODERATE,notify_and_monitor,FALSE,Customer clicked phishing link; credentials reset as precaution
+EMP-005,employee,2026-10-28,api_abuse,P3_MODERATE,notify_and_monitor,FALSE,Dev API key accidentally used in load test against prod; explained and closed
+EMP-001,employee,2026-07-15,insider_threat,P2_HIGH,flag_for_investigation,FALSE,Accessed customer PII outside business hours; explained by emergency prod issue; approved post-hoc
+CUST-7734,customer,2026-11-01,card_fraud,P2_HIGH,auto_remediate,TRUE,Five micro-transactions flagged; card frozen; fraud confirmed
+CUST-3310,customer,2026-06-19,false_positive,P4_LOW,close_false_positive,FALSE,Login from new country flagged; customer confirmed travel to UAE
+API-KEY-882,system,2026-10-10,api_abuse,P2_HIGH,auto_remediate,FALSE,Partner API key exceeded rate limits due to misconfigured retry loop; key rate-limited and partner notified
+SRV-DB-01,system,2026-09-05,data_exfiltration,P1_CRITICAL,escalate_to_soc,FALSE,Unusual outbound traffic to 104.21.8.219 (known APT-FinStealer node); contained

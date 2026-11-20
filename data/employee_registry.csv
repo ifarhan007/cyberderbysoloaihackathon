@@ -1,0 +1,9 @@
+employee_id,full_name,role,department,access_tier,approved_systems,usual_login_hours,usual_login_ip_range,usual_login_country,resignation_flag,after_hours_ticket_active,travel_flag,travel_country,notes
+EMP-001,Ravi Sharma,Database Administrator,Engineering,PRIVILEGED,"core_banking_db,customer_pii_db,audit_logs",09:00-18:00,10.0.1.0/24,BD,FALSE,FALSE,FALSE,,Senior DBA with cardholder data access
+EMP-002,Farah Hossain,Customer Support Agent,Operations,STANDARD,"crm_system,ticket_portal",09:00-21:00,10.0.2.0/24,BD,FALSE,FALSE,FALSE,,Handles customer queries via CRM only
+EMP-003,Daniel Okafor,Security Analyst Tier-1,SOC,PRIVILEGED,"siem_platform,edr_console,network_monitor",08:00-20:00,10.0.3.0/24,BD,FALSE,TRUE,FALSE,,On-call rotation active — after-hours approved
+EMP-004,Priya Nair,VP of Engineering,Engineering,ADMIN,"all_systems",UNRESTRICTED,10.0.4.0/24,BD,FALSE,FALSE,TRUE,SG,VP travel to Singapore for fintech summit 15-20 Nov 2026
+EMP-005,Marcus Tan,Software Developer,Engineering,STANDARD,"code_repo,staging_env,dev_db",09:00-19:00,10.0.5.0/24,BD,TRUE,FALSE,FALSE,,Resignation submitted 10 Nov 2026; last day 24 Nov 2026
+EMP-006,Aisha Begum,Compliance Officer,Legal,PRIVILEGED,"audit_logs,compliance_portal,customer_pii_db",09:00-17:00,10.0.6.0/24,BD,FALSE,FALSE,FALSE,,Read-only access to PII for compliance audits
+EMP-007,Carlos Mendez,IT Helpdesk,IT Support,STANDARD,"helpdesk_portal,active_directory_read",08:00-20:00,10.0.7.0/24,BD,FALSE,FALSE,FALSE,,Cannot modify AD — read only
+EMP-008,Lin Wei,API Integration Engineer,Engineering,STANDARD,"api_gateway,staging_env,partner_portal",09:00-18:00,10.0.8.0/24,BD,FALSE,FALSE,FALSE,,Manages third-party API integrations
