@@ -180,4 +180,4 @@ python evaluate.py           # Validates schema + scores sample cases
 ## 11. Contact
 
 **Email:** uitc.bd@ucsiuniversity.edu.my  
-**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** UITC UCSI BD
+**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** linkedin.com/company/uitc-ucsi-bd
