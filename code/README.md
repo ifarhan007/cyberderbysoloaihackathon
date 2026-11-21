@@ -62,6 +62,34 @@ python app.py
 Optional: `set RUN_LLM_TESTS=1` before the unittest command runs the edge cases through Gemini too.
 `python agent.py --offline` runs without any API calls (deterministic engine only).
 
+## Gemini API key
+
+The agent reads `GEMINI_API_KEY`. The key is never written in the source code, never sent to the
+browser, and never included in `code.zip`.
+
+**On your own PC (Windows):**
+```bat
+copy .env.example .env
+notepad .env
+```
+Paste the key after `GEMINI_API_KEY=` and save. On a shared or lab PC, set it only for the current window
+instead (it disappears when the window closes):
+```bat
+set GEMINI_API_KEY=your_key_here
+```
+
+**In the Claude Code cloud environment:** add a *Network secret* for host
+`generativelanguage.googleapis.com` with header `x-goog-api-key`. The proxy inserts the real key, so `.env`
+only holds a placeholder.
+
+**Check that it works:**
+```bat
+python agent.py --check-gemini
+```
+Expected: `[OK] gemini-3.5-flash works ... Gemini is ready.` If every model says "API key not valid",
+the key is wrong or was deleted. If it says "quota", the free daily limit is used up. In both cases the
+agent still runs using the rules-only fallback.
+
 ## Triage console (web UI)
 
 ```bat

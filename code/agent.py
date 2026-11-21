@@ -8,6 +8,7 @@ Run:
     python agent.py                 -> triage dataset/requests.csv -> ../output.csv
     python agent.py --samples       -> triage the 3 labelled samples -> evaluation/sample_predictions.csv
     python agent.py --offline       -> same, without calling Gemini (policy engine only)
+    python agent.py --check-gemini  -> test the Gemini key with one tiny call
     python agent.py --input X.csv --output Y.csv
 Then:
     python evaluate.py
@@ -25,7 +26,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from soc.corpus import BASE, DATASET, load_corpus, load_requests   # noqa: E402
-from soc.llm import GeminiClient                                    # noqa: E402
+from soc.llm import GeminiClient, LLMError                          # noqa: E402
 from soc.pipeline import FIELDNAMES, TriageAgent                    # noqa: E402
 
 EVAL_DIR = HERE / "evaluation"
@@ -53,15 +54,41 @@ def write_csv(rows: list[dict], path: Path):
         w.writerows(rows)
 
 
+def check_gemini() -> int:
+    """One tiny structured call per configured model. Never prints the key."""
+    client = GeminiClient(max_retries=1, timeout=60)
+    if not client.enabled:
+        print("[!] No GEMINI_API_KEY found. Copy .env.example to .env and paste your key after GEMINI_API_KEY=")
+        return 1
+    schema = {"type": "OBJECT", "properties": {"status": {"type": "STRING"}}, "required": ["status"]}
+    for model in client.models:
+        probe = GeminiClient(model=model, fallbacks=[], max_retries=1, timeout=60)
+        try:
+            probe.generate_json("Reply in JSON.", "Return status 'ok'.", schema, tag="check")
+            c = probe.calls[-1]
+            print(f"[OK] {model} works (served by {c.get('model_version')}, {c['latency_s']}s). Gemini is ready.")
+            return 0
+        except LLMError:
+            err = probe.calls[-1].get("error", "unknown error") if probe.calls else "unknown error"
+            print(f"[--] {model}: {err[:140]}")
+    print("[!] No model answered. If every line says 'API key not valid', the key is wrong or deleted; if it says "
+          "'quota', today's free limit is used up (resets at midnight Pacific time). The agent still runs with the "
+          "rules-only fallback.")
+    return 1
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="NovaPay SOC triage agent")
     ap.add_argument("--input", type=Path, help="incident CSV (default dataset/requests.csv)")
     ap.add_argument("--output", type=Path, help="output CSV (default ../output.csv)")
     ap.add_argument("--samples", action="store_true", help="run on dataset/sample_requests.csv")
     ap.add_argument("--offline", action="store_true", help="do not call Gemini")
+    ap.add_argument("--check-gemini", action="store_true", help="test the Gemini key with one tiny call and exit")
     args = ap.parse_args(argv)
 
     load_env()
+    if args.check_gemini:
+        return check_gemini()
     inp = args.input or (DATASET / ("sample_requests.csv" if args.samples else "requests.csv"))
     out = args.output or (EVAL_DIR / "sample_predictions.csv" if args.samples else BASE / "output.csv")
     tag = "samples" if args.samples else "benchmark"
