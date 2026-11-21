@@ -180,6 +180,18 @@ def evaluate():
                 if not hits[f]:
                     print(f"         ↳ {f}: got '{p.get(f)}' expected '{gt[f]}'")
         print("  Field accuracy: " + ", ".join(f"{f}={per_field[f]}/{sample_total}" for f in fields))
+        # Containment plan: ordered action codes vs ground truth (added after organiser updates e5eea08/2b0a1b3)
+        plan_ok = 0
+        for gt in load_csv(gt_path):
+            p = preds.get(gt["request_id"])
+            if not p:
+                continue
+            want = [s["action"] for s in json.loads(gt["containment_actions"])]
+            got = [s["action"] for s in json.loads(p["containment_actions"])]
+            plan_ok += want == got
+            if want != got:
+                print(f"  [PLAN] {gt['request_id']}: got {got}\n         expected {want}")
+        print(f"  Containment plan (ordered action codes): {plan_ok}/{sample_total} exact match")
     else:
         print("\n[2b] Run `python agent.py --samples` to score the agent on the labelled samples.")
 

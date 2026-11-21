@@ -34,6 +34,9 @@ ID_RE = re.compile(r"\b(?:EMP-\d+|CUST-\d+|API-KEY-\d+|SRV-[A-Z0-9-]+|CARD-[A-Z0
                    r"(?:\d{1,3}\.){3}\d{1,3})\b")
 
 
+IP_ONLY = re.compile(r"(?:\d{1,3}\.){3}\d{1,3}")
+
+
 def word_count(s: str) -> int:
     return len(s.split())
 
@@ -99,6 +102,8 @@ def clean_actions(actions, valid_codes: set, evidence_text: str) -> list[dict]:
             continue
         step = {"action": a["action"]}
         tgt = str(a.get("target", "")).strip()
+        if a["action"] == "BLOCK_IP" and not IP_ONLY.fullmatch(tgt):
+            continue                    # BLOCK_IP must target an IP address (no domain "blocks")
         # drop targets that reference IDs/IPs which do not exist in the incident (hallucination guard)
         if tgt and all(t in evidence_text for t in ID_RE.findall(tgt)):
             step["target"] = tgt[:80]

@@ -249,7 +249,7 @@ def build_actions(cat: str, sev: str, ev: dict) -> list[dict]:
         src = ev["raw"].get("source_ip")
         if src and ev["known_threat_actor"]:
             add("BLOCK_IP", target=src)
-        if ev["known_threat_actor"] or ev["fail_rate"] >= 0.5:
+        if ev["fail_rate"] >= 0.5 or ev["failed_logins"] > 200:   # credential stuffing: key itself is abused
             add("REVOKE_API_KEY", target=eid)
         add("NOTIFY_CUSTOMER", target=ev["raw"].get("registered_entity") or eid, reason="Key owner / targeted credentials")
         add("MONITOR_72H", target=eid)
@@ -265,13 +265,13 @@ def build_actions(cat: str, sev: str, ev: dict) -> list[dict]:
         add("NOTIFY_CUSTOMER" if ev["entity_type"] == "customer" else "NOTIFY_CISO", target=eid)
         add("ALERT_SOC_TIER2")
     elif cat == "phishing":
-        add("BLOCK_IP", target=f"sender_domain:{ev['sender_domain']}")
+        # Organiser update 2b0a1b3: no domain blocking (BLOCK_IP is for IPs); monitor the targeted account.
+        if ev["phishing_domain_hit"]:
+            add("ALERT_SOC_TIER2", reason="Confirmed phishing domain (CAT-06)")
         if ev["credentials_disclosed"] or ev["link_clicked"]:
             add("FORCE_MFA_RESET", target=eid)
-        if ev["phishing_domain_hit"]:
-            add("ALERT_SOC_TIER2", reason="Confirmed phishing domain")
-        if ev["entity_type"] == "customer":
-            add("NOTIFY_CUSTOMER", target=eid)
+        add("NOTIFY_CUSTOMER" if ev["entity_type"] == "customer" else "NOTIFY_CISO",
+            **({"target": eid} if ev["entity_type"] == "customer" else {}))
         add("MONITOR_72H", target=eid)
     elif cat == "social_engineering":
         add("ALERT_SOC_TIER2", reason="Impersonation attempt against staff")
