@@ -15,34 +15,49 @@ python -m unittest discover -s tests -v
 
 ---
 
+## 0. Organiser updates during the sprint
+
+| Upstream commit | What the organisers changed | How the agent was adapted | Result |
+|---|---|---|---|
+| `e5eea08` Update incident response sample data | INC-S002 ground-truth plan became `RATE_LIMIT_API → BLOCK_IP 45.142.212.100 → NOTIFY_CUSTOMER → MONITOR_72H` (no key revocation while auth succeeds); briefings refined; the malformed INC-S002 row (unquoted comma) was fixed | `REVOKE_API_KEY` only for credential stuffing (401 rate ≥ 0.5 or > 200 failed logins); INC-3003 (94 % 401s) still revokes | S002 plan exact match |
+| `2b0a1b3` Update phishing triage actions | Phishing no longer "blocks" the sender domain; plan is `ALERT_SOC_TIER2 → NOTIFY_CISO / NOTIFY_CUSTOMER → MONITOR_72H` | Phishing plan rewritten; new guardrail: `BLOCK_IP` is accepted only with an IP-address target (Gemini cannot re-add a domain block) | S003 plan exact match; INC-3008 updated |
+
+Also added: `evaluate.py` now scores the **ordered containment action codes** against the ground truth, and 4 regression tests cover these updates. Bug found while merging: the saved pre-update predictions scored only 1/3 on the new plan check, which is why `output.csv` and the sample predictions were regenerated.
+
+---
+
 ## 1. Sample benchmark (dataset/sample_requests.csv vs dataset/sample_output.csv)
 
-| ID | Ground truth (sev / cat / decision / window) | Agent prediction | Engine | Gemini agreed | Match |
+| ID | Ground truth (sev / cat / decision / window) | Agent prediction | Plan = ground truth (ordered codes) | Engine | Match |
 |---|---|---|---|---|---|
-| INC-S001 | P4_LOW / false_positive / close_false_positive / N/A | P4_LOW / false_positive / close_false_positive / N/A (conf 0.94) | gemini+guardrails | yes | ✅ |
-| INC-S002 | P2_HIGH / api_abuse / auto_remediate / 2hr | P2_HIGH / api_abuse / auto_remediate / 2hr (conf 0.96) | gemini+guardrails | yes | ✅ |
-| INC-S003 | P2_HIGH / phishing / escalate_to_soc / 2hr | P2_HIGH / phishing / escalate_to_soc / 2hr (conf 0.96) | gemini+guardrails | yes | ✅ |
+| INC-S001 | P4_LOW / false_positive / close_false_positive / N/A | P4_LOW / false_positive / close_false_positive / N/A (conf 0.85) | ✅ CLOSE_TICKET | deterministic_fallback | ✅ |
+| INC-S002 | P2_HIGH / api_abuse / auto_remediate / 2hr | P2_HIGH / api_abuse / auto_remediate / 2hr (conf 0.87) | ✅ RATE_LIMIT_API → BLOCK_IP → NOTIFY_CUSTOMER → MONITOR_72H | deterministic_fallback | ✅ |
+| INC-S003 | P2_HIGH / phishing / escalate_to_soc / 2hr | P2_HIGH / phishing / escalate_to_soc / 2hr (conf 0.87) | ✅ ALERT_SOC_TIER2 → NOTIFY_CISO → MONITOR_72H | deterministic_fallback | ✅ |
 
 Risk flags vs ground truth: INC-S001 `NONE` = `NONE`; INC-S003 `NONE` = `NONE`; INC-S002 agent `KNOWN_THREAT_ACTOR` vs ground truth `NONE` — the ground-truth briefing itself calls 45.142.212.100 "a known credential-stuffing node", so the agent keeps the flag the evidence supports (`evaluate.py` scores only severity/category/decision).
 
-`evaluate.py` result: `Schema valid: YES`, `Output rows: 10/10`, `Sample accuracy: 3/3`, field accuracy severity 3/3, category 3/3, decision 3/3, containment window 3/3.
+`evaluate.py` result (current, after organiser updates): `Schema valid: YES`, `Output rows: 10/10`, `Sample accuracy: 3/3`, field accuracy severity 3/3, category 3/3, decision 3/3, containment window 3/3, **containment plan (ordered action codes) 3/3 exact match**.
+
+The earlier Gemini run of these samples (before the update) also scored 3/3 on severity/category/decision; it is kept in `trace_samples_gemini_pre_update.json`.
 
 ---
 
 ## 2. Full benchmark (dataset/requests.csv → output.csv)
 
-| ID | Severity | Category | Decision | Window | Conf | Risk flags | Engine | Gemini agreed |
-|---|---|---|---|---|---|---|---|---|
-| INC-3001 | P1_CRITICAL | account_takeover | escalate_to_soc | 15min | 0.96 | REPEAT_OFFENDER | gemini+guardrails | yes |
-| INC-3002 | P1_CRITICAL | insider_threat | flag_for_investigation | 15min | 0.98 | KNOWN_THREAT_ACTOR|INSIDER_RISK|DATA_EXFILTRATION_RISK|RESIGNED_EMPLOYEE | gemini+guardrails | yes |
-| INC-3003 | P2_HIGH | api_abuse | auto_remediate | 2hr | 0.94 | KNOWN_THREAT_ACTOR | gemini+guardrails | yes |
-| INC-3004 | P4_LOW | false_positive | close_false_positive | N/A | 0.94 | NONE | gemini+guardrails | yes |
-| INC-3005 | P1_CRITICAL | card_fraud | escalate_to_soc | 15min | 0.96 | REPEAT_OFFENDER | gemini+guardrails | yes |
-| INC-3006 | P2_HIGH | social_engineering | escalate_to_soc | 2hr | 0.94 | NONE | gemini+guardrails | yes |
-| INC-3007 | P1_CRITICAL | ransomware | escalate_to_soc | 15min | 0.94 | KNOWN_THREAT_ACTOR|DATA_EXFILTRATION_RISK | gemini+guardrails | yes |
-| INC-3008 | P2_HIGH | phishing | escalate_to_soc | 2hr | 0.96 | KNOWN_THREAT_ACTOR | gemini+guardrails | yes |
-| INC-3009 | P4_LOW | false_positive | close_false_positive | N/A | 0.96 | NONE | gemini+guardrails | yes |
-| INC-3010 | P2_HIGH | prompt_injection | flag_for_investigation | 2hr | 0.92 | PROMPT_INJECTION_DETECTED | gemini+guardrails | yes |
+| ID | Severity | Category | Decision | Window | Conf | Risk flags | Engine |
+|---|---|---|---|---|---|---|---|
+| INC-3001 | P1_CRITICAL | account_takeover | escalate_to_soc | 15min | 0.87 | REPEAT_OFFENDER | deterministic_fallback |
+| INC-3002 | P1_CRITICAL | insider_threat | flag_for_investigation | 15min | 0.89 | KNOWN_THREAT_ACTOR|INSIDER_RISK|DATA_EXFILTRATION_RISK|RESIGNED_EMPLOYEE | deterministic_fallback |
+| INC-3003 | P2_HIGH | api_abuse | auto_remediate | 2hr | 0.85 | KNOWN_THREAT_ACTOR | deterministic_fallback |
+| INC-3004 | P4_LOW | false_positive | close_false_positive | N/A | 0.85 | NONE | deterministic_fallback |
+| INC-3005 | P1_CRITICAL | card_fraud | escalate_to_soc | 15min | 0.87 | REPEAT_OFFENDER | deterministic_fallback |
+| INC-3006 | P2_HIGH | social_engineering | escalate_to_soc | 2hr | 0.85 | NONE | deterministic_fallback |
+| INC-3007 | P1_CRITICAL | ransomware | escalate_to_soc | 15min | 0.85 | KNOWN_THREAT_ACTOR|DATA_EXFILTRATION_RISK | deterministic_fallback |
+| INC-3008 | P2_HIGH | phishing | escalate_to_soc | 2hr | 0.87 | KNOWN_THREAT_ACTOR | deterministic_fallback |
+| INC-3009 | P4_LOW | false_positive | close_false_positive | N/A | 0.87 | NONE | deterministic_fallback |
+| INC-3010 | P2_HIGH | prompt_injection | flag_for_investigation | 2hr | 0.83 | PROMPT_INJECTION_DETECTED | deterministic_fallback |
+
+The current `output.csv` was regenerated with the deterministic engine after the organiser updates (no working Gemini key at that moment). Decisions are identical (10/10) to the earlier Gemini + guardrails run, in which Gemini agreed with the policy engine on all 10 incidents; that run is preserved as `evaluation/output_gemini_pre_update.csv` with its trace and usage files. It will be re-run with Gemini once a new key is configured.
 
 Ground truth for these 10 incidents is not provided, so they were checked by hand against the
 policy handbook. Notable reasoning:
@@ -83,7 +98,7 @@ Plus two guardrail tests:
 
 And 8 regression tests, one per starter-code bug in section 4 (all **PASS** on the new agent).
 
-Test run output: offline `Ran 12 tests in 0.003s — OK`; with Gemini (`RUN_LLM_TESTS=1`) `Ran 12 tests in 20.360s — OK`.
+Test run output: offline `Ran 16 tests — OK` (12 original + 4 for the organiser updates); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
 
 ---
 

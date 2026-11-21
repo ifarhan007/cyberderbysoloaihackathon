@@ -1,8 +1,10 @@
 # Usage & Cost Report: NovaPay SOC Triage Agent
 **CyberDerby 2026 — Solo AI Hackathon**
 
+> **Status after the organiser updates:** the current `output.csv` was regenerated with the deterministic engine (0 API calls, $0) because the old key had been deleted and no new one was configured yet. The Gemini numbers below belong to the earlier run, kept in `evaluation/usage_benchmark_gemini_pre_update.json`; it made the same 10/10 decisions.
+
 Every number below was measured by the agent itself (`soc/llm.py` logs each API call) and saved in
-`evaluation/usage_benchmark.json` and `evaluation/usage_samples.json`. Nothing is estimated unless
+`evaluation/usage_benchmark_gemini_pre_update.json` and `evaluation/usage_samples_gemini_pre_update.json`. Nothing is estimated unless
 it says so.
 
 ---
@@ -24,7 +26,7 @@ Models were checked against the key's `models.list` endpoint. `gemini-2.5-flash`
 
 ---
 
-## 2. API calls & tokens — final benchmark run (`python agent.py`, 10 incidents)
+## 2. API calls & tokens — Gemini benchmark run (before organiser updates) (`python agent.py`, 10 incidents)
 
 | Metric | Total | Per incident |
 |---|---|---|

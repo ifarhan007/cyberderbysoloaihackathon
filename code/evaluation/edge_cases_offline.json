@@ -74,7 +74,7 @@
       "incident_category": "phishing",
       "triage_decision": "notify_and_monitor",
       "affected_systems": "email_gateway",
-      "containment_actions": "[{\"step\": 1, \"action\": \"BLOCK_IP\", \"target\": \"sender_domain:novapay-helpdesk.org\"}, {\"step\": 2, \"action\": \"MONITOR_72H\", \"target\": \"EMP-002\"}]",
+      "containment_actions": "[{\"step\": 1, \"action\": \"NOTIFY_CISO\"}, {\"step\": 2, \"action\": \"MONITOR_72H\", \"target\": \"EMP-002\"}]",
       "policy_citations": "NOVAPAY-CAT-06;NOVAPAY-SEV-01",
       "risk_flags": "NONE",
       "estimated_containment_window": "24hr",
