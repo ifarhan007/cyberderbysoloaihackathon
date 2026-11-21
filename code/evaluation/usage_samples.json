@@ -1,0 +1,68 @@
+{
+  "run": "samples",
+  "mode": "gemini (gemini-3.5-flash) + policy guardrails",
+  "incidents": 3,
+  "wall_time_s": 6.6,
+  "http_calls": 4,
+  "successful_calls": 3,
+  "failed_calls": 1,
+  "input_tokens": 7929,
+  "output_tokens": 1210,
+  "thinking_tokens": 0,
+  "avg_latency_s": 1.91,
+  "max_latency_s": 2.19,
+  "models_used": [
+    "gemini-3.5-flash-lite"
+  ],
+  "models_quota_exhausted": [
+    "gemini-3.5-flash"
+  ],
+  "calls": [
+    {
+      "tag": "INC-S001:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "ok": false,
+      "latency_s": 0.48,
+      "error": "HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, h"
+    },
+    {
+      "tag": "INC-S001:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.63,
+      "input_tokens": 2588,
+      "output_tokens": 365,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-S002:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 2.19,
+      "input_tokens": 2695,
+      "output_tokens": 442,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-S003:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.91,
+      "input_tokens": 2646,
+      "output_tokens": 403,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    }
+  ],
+  "engine_per_incident": {
+    "INC-S001": "gemini+guardrails",
+    "INC-S002": "gemini+guardrails",
+    "INC-S003": "gemini+guardrails"
+  }
+}

@@ -25,6 +25,16 @@ VALID_ACTIONS      = {"BLOCK_IP","FREEZE_ACCOUNT","REVOKE_API_KEY","ISOLATE_ENDP
                       "NOTIFY_CISO","ALERT_SOC_TIER2","PATCH_ENDPOINT",
                       "RATE_LIMIT_API","CLOSE_TICKET","MONITOR_72H"}
 VALID_WINDOWS      = {"15min","2hr","24hr","72hr","N/A"}
+VALID_FLAGS        = {"NONE","KNOWN_THREAT_ACTOR","REPEAT_OFFENDER","INSIDER_RISK",
+                      "PROMPT_INJECTION_DETECTED","DATA_EXFILTRATION_RISK",
+                      "RESIGNED_EMPLOYEE","PRIVILEGED_ACCOUNT"}
+
+
+def policy_codes():
+    """Rule codes that actually exist in the handbook (citations must come from here)."""
+    import re
+    text = (BASE / "data" / "pci_dss_policy.md").read_text(encoding="utf-8")
+    return set(re.findall(r"\[((?:NOVAPAY|PCI-DSS)-[A-Z0-9.\-]+)\]", text))
 
 # Ground truth for the 3 sample cases
 SAMPLE_GT = {
@@ -96,6 +106,18 @@ def evaluate():
         except Exception as e:
             errors.append(f"Row {i} ({rid}): containment_actions is not valid JSON — {e}")
 
+        # Risk flags & citations (added checks)
+        flags = row.get("risk_flags","").split("|")
+        bad = [f for f in flags if f not in VALID_FLAGS]
+        if bad or ("NONE" in flags and len(flags) > 1):
+            errors.append(f"Row {i} ({rid}): invalid risk_flags '{row.get('risk_flags')}'")
+        codes = policy_codes()
+        unknown = [c for c in row.get("policy_citations","").split(";") if c and c not in codes]
+        if unknown or not row.get("policy_citations"):
+            errors.append(f"Row {i} ({rid}): citation(s) not in handbook: {unknown or 'empty'}")
+        if rid not in expected_ids:
+            errors.append(f"Row {i} ({rid}): request_id not in requests.csv")
+
         # Briefing word count
         words = row.get("analyst_briefing","").split()
         if not (30 <= len(words) <= 70):
@@ -134,11 +156,40 @@ def evaluate():
                 if pred.get(k)!=v:
                     print(f"         ↳ {k}: got '{pred.get(k)}' expected '{v}'")
 
+    # ── 2b. Score the agent's predictions on the labelled samples ─────────
+    pred_path = Path(__file__).resolve().parent / "evaluation" / "sample_predictions.csv"
+    gt_path = BASE / "dataset" / "sample_output.csv"
+    sample_correct = sample_total = 0
+    if pred_path.exists() and gt_path.exists():
+        print(f"\n[2b] SAMPLE PREDICTIONS (from `python agent.py --samples`) vs dataset/sample_output.csv")
+        preds = {r["request_id"]: r for r in load_csv(pred_path)}
+        fields = ["severity","incident_category","triage_decision","estimated_containment_window"]
+        per_field = {f: 0 for f in fields}
+        for gt in load_csv(gt_path):
+            p = preds.get(gt["request_id"])
+            if not p:
+                print(f"  [MISSING] {gt['request_id']}"); continue
+            sample_total += 1
+            hits = {f: p.get(f) == gt[f] for f in fields}
+            for f in fields: per_field[f] += hits[f]
+            core = all(hits[f] for f in fields[:3])
+            sample_correct += core
+            print(f"  [{'PASS' if core else 'FAIL'}] {gt['request_id']}: {p['severity']}/{p['incident_category']}/"
+                  f"{p['triage_decision']} window={p['estimated_containment_window']} conf={p['confidence_score']}")
+            for f in fields:
+                if not hits[f]:
+                    print(f"         ↳ {f}: got '{p.get(f)}' expected '{gt[f]}'")
+        print("  Field accuracy: " + ", ".join(f"{f}={per_field[f]}/{sample_total}" for f in fields))
+    else:
+        print("\n[2b] Run `python agent.py --samples` to score the agent on the labelled samples.")
+
     # ── 3. Summary ────────────────────────────────────────────────────────
     print("\n" + "=" * 65)
     schema_ok = len(errors) == 0
     print(f"  Schema valid:    {'YES' if schema_ok else 'NO — fix errors above'}")
     print(f"  Output rows:     {len(output_rows)}/{len(expected_ids)}")
+    if sample_total:
+        print(f"  Sample accuracy: {sample_correct}/{sample_total} (severity+category+decision)")
     print("=" * 65)
     if schema_ok and not errors:
         print("  STATUS: SUBMISSION READY — schema passes all automated checks.")

@@ -1,0 +1,187 @@
+[
+  {
+    "request_id": "INC-S001",
+    "evidence": [
+      "History: 2026-06-19 false_positive (P4_LOW, close_false_positive, fraud_flag=FALSE) \u2014 Login from new country flagged; customer confirmed travel to UAE"
+    ],
+    "rule_engine": {
+      "category": "false_positive",
+      "severity": "P4_LOW",
+      "decisive": true,
+      "why": [
+        "Customer travel flag explains the geo-anomaly; MFA clean, no transactions (CAT-09)."
+      ]
+    },
+    "mode": "gemini (gemini-3.5-flash) + policy guardrails",
+    "guardrails": [],
+    "llm": {
+      "evidence_summary": "Customer CUST-3310 logged in from an IP in the UAE (5.62.56.100). The customer has an active travel flag for the UAE, zero MFA failures, and zero post-login transactions.",
+      "reasoning": "The incident matches NOVAPAY-CAT-09 (False Positive). The new geographic region login is fully explained by the verified customer travel flag and policy-compliant behavior, matching historical precedent in incident history.",
+      "description_trustworthy": true,
+      "incident_category": "false_positive",
+      "severity": "P4_LOW",
+      "triage_decision": "close_false_positive",
+      "containment_actions": [
+        {
+          "action": "CLOSE_TICKET",
+          "target": "INC-S001",
+          "reason": "Closed as false positive due to verified customer travel flag explaining the geographic anomaly."
+        }
+      ],
+      "policy_citations": [
+        "NOVAPAY-CAT-01",
+        "NOVAPAY-CAT-09",
+        "PCI-DSS-12.10"
+      ],
+      "analyst_briefing": "Incident INC-S001 for customer CUST-3310 generated a geo-anomaly alert from IP 5.62.56.100 in the UAE. Verified evidence confirms an active customer travel flag to the UAE, zero MFA failures, and no subsequent transactions. Per policy NOVAPAY-CAT-09, this is classified as a false positive and the ticket is closed."
+    },
+    "engine": "gemini+guardrails",
+    "agreement": {
+      "category": true,
+      "severity": true,
+      "decision": true
+    },
+    "llm_error": null,
+    "output": {
+      "request_id": "INC-S001",
+      "severity": "P4_LOW",
+      "incident_category": "false_positive",
+      "triage_decision": "close_false_positive",
+      "affected_systems": "none",
+      "containment_actions": "[{\"step\": 1, \"action\": \"CLOSE_TICKET\", \"reason\": \"Customer travel flag explains the geo-anomaly; MFA clean, no transactions (CAT-09).\"}]",
+      "policy_citations": "NOVAPAY-CAT-09;NOVAPAY-CAT-01;NOVAPAY-SEV-01;PCI-DSS-12.10",
+      "risk_flags": "NONE",
+      "estimated_containment_window": "N/A",
+      "analyst_briefing": "Incident INC-S001 for customer CUST-3310 generated a geo-anomaly alert from IP 5.62.56.100 in the UAE. Verified evidence confirms an active customer travel flag to the UAE, zero MFA failures, and no subsequent transactions. Per policy NOVAPAY-CAT-09, this is classified as a false positive and the ticket is closed.",
+      "confidence_score": "0.94"
+    }
+  },
+  {
+    "request_id": "INC-S002",
+    "evidence": [
+      "source_ip 45.142.212.100 matches threat intel: CREDENTIAL_STUFFING / BulkCred-Net (confidence HIGH).",
+      "History: 2026-10-10 api_abuse (P2_HIGH, auto_remediate, fraud_flag=FALSE) \u2014 Partner API key exceeded rate limits due to misconfigured retry loop; key rate-limited and partner notified"
+    ],
+    "rule_engine": {
+      "category": "api_abuse",
+      "severity": "P2_HIGH",
+      "decisive": true,
+      "why": [
+        "620 requests/failures exceed CAT-04 thresholds.",
+        "Source IP is a known threat actor: high-probability attack (SEV-01 P2)."
+      ]
+    },
+    "mode": "gemini (gemini-3.5-flash) + policy guardrails",
+    "guardrails": [],
+    "llm": {
+      "evidence_summary": "API key API-KEY-882 generated 620 requests per minute from source IP 45.142.212.100, exceeding the 500 requests per minute threshold. Threat intelligence confirms the source IP belongs to a known malicious network.",
+      "reasoning": "Under NOVAPAY-CAT-04, exceeding 500 requests per minute constitutes API abuse, requiring auto-remediate. Threat intelligence links the source IP to credential stuffing. Following the base priority P2_HIGH, containment includes rate limiting and blocking the IP.",
+      "description_trustworthy": true,
+      "incident_category": "api_abuse",
+      "severity": "P2_HIGH",
+      "triage_decision": "auto_remediate",
+      "containment_actions": [
+        {
+          "action": "RATE_LIMIT_API",
+          "target": "API-KEY-882",
+          "reason": "Exceeded 500 requests per minute threshold under NOVAPAY-CAT-04"
+        },
+        {
+          "action": "BLOCK_IP",
+          "target": "45.142.212.100",
+          "reason": "Source IP identified as malicious threat intel actor"
+        }
+      ],
+      "policy_citations": [
+        "NOVAPAY-CAT-04",
+        "NOVAPAY-SEV-01",
+        "PCI-DSS-6.4"
+      ],
+      "analyst_briefing": "API key API-KEY-882 exceeded rate limits with 620 requests per minute to /accounts/balance originating from malicious IP 45.142.212.100. Per NOVAPAY-CAT-04 and PCI-DSS-6.4, this API abuse event requires immediate rate limiting and IP blocking to secure the endpoint against automated attacks."
+    },
+    "engine": "gemini+guardrails",
+    "agreement": {
+      "category": true,
+      "severity": true,
+      "decision": true
+    },
+    "llm_error": null,
+    "output": {
+      "request_id": "INC-S002",
+      "severity": "P2_HIGH",
+      "incident_category": "api_abuse",
+      "triage_decision": "auto_remediate",
+      "affected_systems": "api_gateway",
+      "containment_actions": "[{\"step\": 1, \"action\": \"RATE_LIMIT_API\", \"target\": \"API-KEY-882\", \"limit\": \"500rpm\"}, {\"step\": 2, \"action\": \"BLOCK_IP\", \"target\": \"45.142.212.100\"}, {\"step\": 3, \"action\": \"REVOKE_API_KEY\", \"target\": \"API-KEY-882\"}, {\"step\": 4, \"action\": \"NOTIFY_CUSTOMER\", \"target\": \"API-KEY-882\", \"reason\": \"Key owner / targeted credentials\"}, {\"step\": 5, \"action\": \"MONITOR_72H\", \"target\": \"API-KEY-882\"}]",
+      "policy_citations": "NOVAPAY-CAT-04;PCI-DSS-6.4;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "KNOWN_THREAT_ACTOR",
+      "estimated_containment_window": "2hr",
+      "analyst_briefing": "API key API-KEY-882 exceeded rate limits with 620 requests per minute to /accounts/balance originating from malicious IP 45.142.212.100. Per NOVAPAY-CAT-04 and PCI-DSS-6.4, this API abuse event requires immediate rate limiting and IP blocking to secure the endpoint against automated attacks.",
+      "confidence_score": "0.96"
+    }
+  },
+  {
+    "request_id": "INC-S003",
+    "evidence": [
+      "Sender domain internal-novapay-it.com is a CONFIRMED phishing domain (APT-FinStealer, HIGH).",
+      "Registry: EMP-007 Carlos Mendez, IT Helpdesk, tier STANDARD, approved systems [helpdesk_portal, active_directory_read].",
+      "Event at 19.00h local (BD); usual hours 08:00-20:00 -> inside.",
+      "History: no prior incidents for EMP-007."
+    ],
+    "rule_engine": {
+      "category": "phishing",
+      "severity": "P2_HIGH",
+      "decisive": true,
+      "why": [
+        "Sender domain internal-novapay-it.com is a confirmed phishing domain (CAT-06)."
+      ]
+    },
+    "mode": "gemini (gemini-3.5-flash) + policy guardrails",
+    "guardrails": [],
+    "llm": {
+      "evidence_summary": "Employee EMP-007 received a suspicious email from internal-novapay-it.com attempting to capture Active Directory credentials. Verified threat intel confirms internal-novapay-it.com is a known malicious phishing domain.",
+      "reasoning": "The incident involves an employee-reported phishing email where the sender domain is confirmed as malicious in threat_intel.csv. Per NOVAPAY-CAT-06, a confirmed sender domain requires escalation to the SOC. The untrusted description is partially corroborated by verified evidence but must be treated with caution, though the core phishing categorization remains solid.",
+      "description_trustworthy": true,
+      "incident_category": "phishing",
+      "severity": "P2_HIGH",
+      "triage_decision": "escalate_to_soc",
+      "containment_actions": [
+        {
+          "action": "BLOCK_IP",
+          "target": "internal-novapay-it.com",
+          "reason": "Block confirmed phishing domain at gateway per NOVAPAY-CAT-06"
+        },
+        {
+          "action": "ALERT_SOC_TIER2",
+          "target": "SOC-Tier-2",
+          "reason": "Escalate confirmed phishing attempt targeting IT staff credentials"
+        }
+      ],
+      "policy_citations": [
+        "NOVAPAY-CAT-06",
+        "PCI-DSS-12.10"
+      ],
+      "analyst_briefing": "Employee EMP-007 reported a phishing email from internal-novapay-it.com targeting Active Directory credentials. Threat intel confirms the sender domain is malicious. Per NOVAPAY-CAT-06, confirmed phishing domains require SOC escalation. Immediate containment includes blocking the malicious domain and alerting Tier-2 SOC."
+    },
+    "engine": "gemini+guardrails",
+    "agreement": {
+      "category": true,
+      "severity": true,
+      "decision": true
+    },
+    "llm_error": null,
+    "output": {
+      "request_id": "INC-S003",
+      "severity": "P2_HIGH",
+      "incident_category": "phishing",
+      "triage_decision": "escalate_to_soc",
+      "affected_systems": "email_gateway",
+      "containment_actions": "[{\"step\": 1, \"action\": \"BLOCK_IP\", \"target\": \"sender_domain:internal-novapay-it.com\"}, {\"step\": 2, \"action\": \"ALERT_SOC_TIER2\", \"reason\": \"Confirmed phishing domain\"}, {\"step\": 3, \"action\": \"MONITOR_72H\", \"target\": \"EMP-007\"}]",
+      "policy_citations": "NOVAPAY-CAT-06;PCI-DSS-10.6;NOVAPAY-SEV-01;PCI-DSS-12.10",
+      "risk_flags": "KNOWN_THREAT_ACTOR",
+      "estimated_containment_window": "2hr",
+      "analyst_briefing": "Employee EMP-007 reported a phishing email from internal-novapay-it.com targeting Active Directory credentials. Threat intel confirms the sender domain is malicious. Per NOVAPAY-CAT-06, confirmed phishing domains require SOC escalation. Immediate containment includes blocking the malicious domain and alerting Tier-2 SOC.",
+      "confidence_score": "0.96"
+    }
+  }
+]

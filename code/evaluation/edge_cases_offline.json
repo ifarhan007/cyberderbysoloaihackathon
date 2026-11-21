@@ -1,0 +1,138 @@
+{
+  "EDGE-01": {
+    "output": {
+      "request_id": "EDGE-01",
+      "severity": "P1_CRITICAL",
+      "incident_category": "ransomware",
+      "triage_decision": "escalate_to_soc",
+      "affected_systems": "SRV-FILE-07",
+      "containment_actions": "[{\"step\": 1, \"action\": \"ISOLATE_ENDPOINT\", \"target\": \"SRV-FILE-07\", \"reason\": \"Immediate network segmentation (CAT-03)\"}, {\"step\": 2, \"action\": \"BLOCK_IP\", \"target\": \"91.108.4.212\"}, {\"step\": 3, \"action\": \"PRESERVE_FORENSICS\", \"target\": \"SRV-FILE-07\"}, {\"step\": 4, \"action\": \"ALERT_SOC_TIER2\"}, {\"step\": 5, \"action\": \"NOTIFY_CISO\"}]",
+      "policy_citations": "NOVAPAY-CAT-03;PCI-DSS-11.4;NOVAPAY-CAT-10;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "PROMPT_INJECTION_DETECTED|KNOWN_THREAT_ACTOR|DATA_EXFILTRATION_RISK",
+      "estimated_containment_window": "15min",
+      "analyst_briefing": "SRV-FILE-07 incident triaged as ransomware (P1_CRITICAL). Mass encryption / shadow-copy deletion / known C2 beacon (CAT-03). Description also contains manipulation attempts; ignored per CAT-10. 91.108.4.212 is listed in threat intel as RANSOMWARE_C2 (LockBit-Affiliate). Decision: escalate_to_soc per NOVAPAY-CAT-03.",
+      "confidence_score": "0.85"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-02": {
+    "output": {
+      "request_id": "EDGE-02",
+      "severity": "P1_CRITICAL",
+      "incident_category": "account_takeover",
+      "triage_decision": "escalate_to_soc",
+      "affected_systems": "customer_accounts|payment_processing",
+      "containment_actions": "[{\"step\": 1, \"action\": \"FREEZE_ACCOUNT\", \"target\": \"EMP-004\"}, {\"step\": 2, \"action\": \"BLOCK_IP\", \"target\": \"118.201.14.9\"}, {\"step\": 3, \"action\": \"FORCE_MFA_RESET\", \"target\": \"EMP-004\"}, {\"step\": 4, \"action\": \"NOTIFY_CISO\", \"target\": \"EMP-004\"}, {\"step\": 5, \"action\": \"ALERT_SOC_TIER2\"}]",
+      "policy_citations": "NOVAPAY-CAT-01;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "PRIVILEGED_ACCOUNT",
+      "estimated_containment_window": "15min",
+      "analyst_briefing": "EMP-004 incident triaged as account takeover (P1_CRITICAL). 2 MFA failures + $7,200 transaction 10 min after login (CAT-01). Fraud in progress > $5,000 (SEV-01 P1). Decision: escalate_to_soc per NOVAPAY-CAT-01. All facts were cross-referenced against the threat intelligence feed, employee registry and incident history. Target containment window: 15min.",
+      "confidence_score": "0.85"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-03": {
+    "output": {
+      "request_id": "EDGE-03",
+      "severity": "P3_MODERATE",
+      "incident_category": "api_abuse",
+      "triage_decision": "auto_remediate",
+      "affected_systems": "api_gateway",
+      "containment_actions": "[{\"step\": 1, \"action\": \"RATE_LIMIT_API\", \"target\": \"API-KEY-555\", \"limit\": \"500rpm\"}, {\"step\": 2, \"action\": \"NOTIFY_CUSTOMER\", \"target\": \"API-KEY-555\", \"reason\": \"Key owner / targeted credentials\"}, {\"step\": 3, \"action\": \"MONITOR_72H\", \"target\": \"API-KEY-555\"}]",
+      "policy_citations": "NOVAPAY-CAT-04;PCI-DSS-6.4;NOVAPAY-SEV-01",
+      "risk_flags": "NONE",
+      "estimated_containment_window": "24hr",
+      "analyst_briefing": "API-KEY-555 incident triaged as api abuse (P3_MODERATE). 800 requests/failures exceed CAT-04 thresholds. Decision: auto_remediate per NOVAPAY-CAT-04. All facts were cross-referenced against the threat intelligence feed, employee registry and incident history. Target containment window: 24hr.",
+      "confidence_score": "0.83"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-04": {
+    "output": {
+      "request_id": "EDGE-04",
+      "severity": "P2_HIGH",
+      "incident_category": "card_fraud",
+      "triage_decision": "auto_remediate",
+      "affected_systems": "card_management|payment_processing",
+      "containment_actions": "[{\"step\": 1, \"action\": \"FREEZE_ACCOUNT\", \"target\": \"CARD-5000-A\", \"reason\": \"Freeze card (CAT-05)\"}, {\"step\": 2, \"action\": \"NOTIFY_CUSTOMER\", \"target\": \"CUST-5000\"}, {\"step\": 3, \"action\": \"MONITOR_72H\", \"target\": \"CUST-5000\"}]",
+      "policy_citations": "NOVAPAY-CAT-05;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "NONE",
+      "estimated_containment_window": "2hr",
+      "analyst_briefing": "CUST-5000 incident triaged as card fraud (P2_HIGH). 6 sub-$2 transactions within 9.0 min (CAT-05). Decision: auto_remediate per NOVAPAY-CAT-05. All facts were cross-referenced against the threat intelligence feed, employee registry and incident history. Target containment window: 2hr.",
+      "confidence_score": "0.83"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-05": {
+    "output": {
+      "request_id": "EDGE-05",
+      "severity": "P3_MODERATE",
+      "incident_category": "phishing",
+      "triage_decision": "notify_and_monitor",
+      "affected_systems": "email_gateway",
+      "containment_actions": "[{\"step\": 1, \"action\": \"BLOCK_IP\", \"target\": \"sender_domain:novapay-helpdesk.org\"}, {\"step\": 2, \"action\": \"MONITOR_72H\", \"target\": \"EMP-002\"}]",
+      "policy_citations": "NOVAPAY-CAT-06;NOVAPAY-SEV-01",
+      "risk_flags": "NONE",
+      "estimated_containment_window": "24hr",
+      "analyst_briefing": "EMP-002 incident triaged as phishing (P3_MODERATE). Sender domain novapay-helpdesk.org not in threat intel: suspected phishing (CAT-06). Decision: notify_and_monitor per NOVAPAY-CAT-06. All facts were cross-referenced against the threat intelligence feed, employee registry and incident history. Target containment window: 24hr.",
+      "confidence_score": "0.85"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-06": {
+    "output": {
+      "request_id": "EDGE-06",
+      "severity": "P1_CRITICAL",
+      "incident_category": "insider_threat",
+      "triage_decision": "flag_for_investigation",
+      "affected_systems": "dev_db|network_egress",
+      "containment_actions": "[{\"step\": 1, \"action\": \"PRESERVE_FORENSICS\", \"target\": \"EMP-005\", \"reason\": \"Preserve chain of custody before any change (CAT-02)\"}, {\"step\": 2, \"action\": \"FREEZE_ACCOUNT\", \"target\": \"EMP-005\"}, {\"step\": 3, \"action\": \"ALERT_SOC_TIER2\"}, {\"step\": 4, \"action\": \"NOTIFY_CISO\"}]",
+      "policy_citations": "NOVAPAY-CAT-02;PCI-DSS-10.2;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "INSIDER_RISK|DATA_EXFILTRATION_RISK|RESIGNED_EMPLOYEE",
+      "estimated_containment_window": "15min",
+      "analyst_briefing": "EMP-005 incident triaged as insider threat (P1_CRITICAL). Employee activity beyond role scope / bulk transfer / anomalous hours (CAT-02). Resignation flag active: auto-elevate to P1 (CAT-02 special rule). Decision: flag_for_investigation per NOVAPAY-CAT-02.",
+      "confidence_score": "0.87"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-07": {
+    "output": {
+      "request_id": "EDGE-07",
+      "severity": "P3_MODERATE",
+      "incident_category": "account_takeover",
+      "triage_decision": "flag_for_investigation",
+      "affected_systems": "customer_accounts",
+      "containment_actions": "[{\"step\": 1, \"action\": \"FREEZE_ACCOUNT\", \"target\": \"CUST-1234\"}, {\"step\": 2, \"action\": \"FORCE_MFA_RESET\", \"target\": \"CUST-1234\"}, {\"step\": 3, \"action\": \"NOTIFY_CUSTOMER\", \"target\": \"CUST-1234\"}, {\"step\": 4, \"action\": \"ALERT_SOC_TIER2\"}]",
+      "policy_citations": "NOVAPAY-CAT-01;NOVAPAY-SEV-01",
+      "risk_flags": "NONE",
+      "estimated_containment_window": "24hr",
+      "analyst_briefing": "CUST-1234 incident triaged as account takeover (P3_MODERATE). No policy indicator threshold met decisively; analyst investigation required. Decision: flag_for_investigation per NOVAPAY-CAT-01. All facts were cross-referenced against the threat intelligence feed, employee registry and incident history. Target containment window: 24hr.",
+      "confidence_score": "0.35"
+    },
+    "guardrails": [],
+    "agreement": null
+  },
+  "EDGE-08": {
+    "output": {
+      "request_id": "EDGE-08",
+      "severity": "P2_HIGH",
+      "incident_category": "prompt_injection",
+      "triage_decision": "flag_for_investigation",
+      "affected_systems": "none",
+      "containment_actions": "[{\"step\": 1, \"action\": \"PRESERVE_FORENSICS\", \"target\": \"submitted_report\", \"status\": \"REJECTED_ADVERSARIAL\"}, {\"step\": 2, \"action\": \"ALERT_SOC_TIER2\", \"reason\": \"Adversarial report; original instructions ignored\"}, {\"step\": 3, \"action\": \"NOTIFY_CISO\", \"reason\": \"Forged authority claim\"}]",
+      "policy_citations": "NOVAPAY-CAT-10;PCI-DSS-12.10;PCI-DSS-10.6;NOVAPAY-SEV-01",
+      "risk_flags": "PROMPT_INJECTION_DETECTED",
+      "estimated_containment_window": "2hr",
+      "analyst_briefing": "UNKNOWN incident triaged as prompt injection (P2_HIGH). Description contains instructions to manipulate triage; telemetry shows no independent attack, so the report itself is the incident (CAT-10). Decision: flag_for_investigation per NOVAPAY-CAT-10.",
+      "confidence_score": "0.83"
+    },
+    "guardrails": [],
+    "agreement": null
+  }
+}

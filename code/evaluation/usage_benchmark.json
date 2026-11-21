@@ -1,0 +1,160 @@
+{
+  "run": "benchmark",
+  "mode": "gemini (gemini-3.5-flash) + policy guardrails",
+  "incidents": 10,
+  "wall_time_s": 23.0,
+  "http_calls": 12,
+  "successful_calls": 10,
+  "failed_calls": 2,
+  "input_tokens": 26987,
+  "output_tokens": 4656,
+  "thinking_tokens": 0,
+  "avg_latency_s": 1.71,
+  "max_latency_s": 1.98,
+  "models_used": [
+    "gemini-3.5-flash-lite"
+  ],
+  "models_quota_exhausted": [
+    "gemini-3.5-flash"
+  ],
+  "calls": [
+    {
+      "tag": "INC-3001:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "ok": false,
+      "latency_s": 0.45,
+      "error": "HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, h"
+    },
+    {
+      "tag": "INC-3001:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.72,
+      "input_tokens": 2741,
+      "output_tokens": 609,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3002:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.82,
+      "input_tokens": 2865,
+      "output_tokens": 510,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3003:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.67,
+      "input_tokens": 2670,
+      "output_tokens": 500,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3004:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.45,
+      "input_tokens": 2678,
+      "output_tokens": 352,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3005:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.98,
+      "input_tokens": 2677,
+      "output_tokens": 502,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3006:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.55,
+      "input_tokens": 2630,
+      "output_tokens": 375,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3007:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.96,
+      "input_tokens": 2685,
+      "output_tokens": 626,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3008:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.55,
+      "input_tokens": 2641,
+      "output_tokens": 421,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3009:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.53,
+      "input_tokens": 2771,
+      "output_tokens": 388,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3010:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "ok": false,
+      "latency_s": 0.1,
+      "error": "HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, h"
+    },
+    {
+      "tag": "INC-3010:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 2,
+      "latency_s": 1.89,
+      "input_tokens": 2629,
+      "output_tokens": 373,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    }
+  ],
+  "engine_per_incident": {
+    "INC-3001": "gemini+guardrails",
+    "INC-3002": "gemini+guardrails",
+    "INC-3003": "gemini+guardrails",
+    "INC-3004": "gemini+guardrails",
+    "INC-3005": "gemini+guardrails",
+    "INC-3006": "gemini+guardrails",
+    "INC-3007": "gemini+guardrails",
+    "INC-3008": "gemini+guardrails",
+    "INC-3009": "gemini+guardrails",
+    "INC-3010": "gemini+guardrails"
+  }
+}
