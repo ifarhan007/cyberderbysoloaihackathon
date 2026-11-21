@@ -17,9 +17,9 @@ HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 
 from agent import load_env                       # noqa: E402
-from soc.corpus import load_corpus               # noqa: E402
-from soc.llm import GeminiClient                 # noqa: E402
-from soc.pipeline import TriageAgent, validate_incident, word_count  # noqa: E402
+from novapay_soc.corpus import load_corpus               # noqa: E402
+from novapay_soc.llm import GeminiClient                 # noqa: E402
+from novapay_soc.pipeline import TriageAgent, validate_incident, word_count  # noqa: E402
 
 CORPUS = load_corpus()
 load_env()
@@ -128,7 +128,7 @@ class EdgeCaseTests(unittest.TestCase):
     def test_offline_fallback_when_llm_fails(self):
         broken = GeminiClient(api_key="invalid", model="does-not-exist", fallbacks=[], max_retries=1, timeout=5)
         agent = TriageAgent(CORPUS, broken, use_llm=True)
-        agent.llm.generate_json = lambda *a, **k: (_ for _ in ()).throw(__import__("soc.llm").llm.LLMError("down"))
+        agent.llm.generate_json = lambda *a, **k: (_ for _ in ()).throw(__import__("novapay_soc.llm").llm.LLMError("down"))
         row, trace = agent.triage(EDGE_CASES[0][0])
         self.assertEqual(row["incident_category"], "ransomware")
         self.assertTrue(any("LLM unavailable" in g for g in trace["guardrails"]))
@@ -229,8 +229,11 @@ class OrganiserUpdateTests(unittest.TestCase):
 
     def test_sample_plans_match_new_ground_truth(self):
         import csv
-        reqs = {r["request_id"]: r for r in csv.DictReader(open(HERE.parent / "dataset" / "sample_requests.csv", encoding="utf-8"))}
-        for gt in csv.DictReader(open(HERE.parent / "dataset" / "sample_output.csv", encoding="utf-8")):
+        with open(HERE.parent / "dataset" / "sample_requests.csv", encoding="utf-8") as f:
+            reqs = {r["request_id"]: r for r in csv.DictReader(f)}
+        with open(HERE.parent / "dataset" / "sample_output.csv", encoding="utf-8") as f:
+            truth = list(csv.DictReader(f))
+        for gt in truth:
             with self.subTest(gt["request_id"]):
                 self.assertEqual(self.plan(reqs[gt["request_id"]]),
                                  [s["action"] for s in json.loads(gt["containment_actions"])])
@@ -263,8 +266,8 @@ class BriefingGroundingTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        from soc.evidence import build_evidence
-        from soc.pipeline import briefing_problems
+        from novapay_soc.evidence import build_evidence
+        from novapay_soc.pipeline import briefing_problems
         cls.check = staticmethod(briefing_problems)
         cls.inc = inc("INC-3005", "CUST-7734", "customer", "7 charges",
                       {"card_id": "CARD-7734-X", "transaction_count": 7,
@@ -302,7 +305,7 @@ class BriefingGroundingTests(unittest.TestCase):
 class LLMActionScopeTests(unittest.TestCase):
     def test_llm_cannot_add_high_impact_actions(self):
         """Real failure: Gemini re-added REVOKE_API_KEY to INC-S002 after the organisers removed it."""
-        from soc.pipeline import merge_actions
+        from novapay_soc.pipeline import merge_actions
         base = [{"step": 1, "action": "RATE_LIMIT_API"}, {"step": 2, "action": "MONITOR_72H"}]
         extra = [{"action": "REVOKE_API_KEY"}, {"action": "FREEZE_ACCOUNT"}, {"action": "FORCE_MFA_RESET"},
                  {"action": "NOTIFY_CISO"}]
@@ -340,3 +343,19 @@ class OverruledBriefingTests(unittest.TestCase):
         row, _ = TriageAgent(CORPUS, FakeLLM(api_key="fake"), use_llm=True).triage(EDGE_CASES[1][0])
         self.assertNotIn("NOVAPAY-CAT-09", row["policy_citations"])
         self.assertIn("NOVAPAY-CAT-01", row["policy_citations"])
+
+
+class CliTests(unittest.TestCase):
+    def test_output_to_new_folder_keeps_submitted_evidence(self):
+        """Bugs: --output into a new folder crashed; a demo --output run overwrote evaluation/trace_benchmark.json."""
+        import subprocess, tempfile
+        ev = HERE / "evaluation" / "trace_benchmark.json"
+        before = ev.read_bytes()
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "new_folder" / "demo.csv"
+            r = subprocess.run([sys.executable, str(HERE / "agent.py"), "--offline", "--output", str(out)],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(out.exists())
+            self.assertTrue((out.parent / "trace_demo.json").exists())
+        self.assertEqual(ev.read_bytes(), before)

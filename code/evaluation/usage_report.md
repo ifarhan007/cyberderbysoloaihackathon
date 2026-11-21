@@ -1,7 +1,7 @@
 # Usage & Cost Report: NovaPay SOC Triage Agent
 **CyberDerby 2026 — Solo AI Hackathon**
 
-Every number below was measured by the agent itself (`soc/llm.py` logs each API call) and saved in
+Every number below was measured by the agent itself (`novapay_soc/llm.py` logs each API call) and saved in
 `evaluation/usage_benchmark.json` and `evaluation/usage_samples.json`. Nothing is estimated unless
 it says so.
 
@@ -78,7 +78,7 @@ all 3 handled by `gemini-3.5-flash-lite` · 1.59 s average latency · 5.6 s wall
 | Wall time, 10 incidents (sequential) | 122.9 s |
 | Wall time, 3 samples | 5.6 s |
 
-**Retry / fallback strategy** (`soc/llm.py`, `soc/pipeline.py`):
+**Retry / fallback strategy** (`novapay_soc/llm.py`, `novapay_soc/pipeline.py`):
 1. Calls are **sequential**, one incident at a time (free-tier friendly).
 2. Transient errors (429 per-minute, 500/503 "high demand", 504, timeouts, network errors): up to 3
    attempts per model with 5 s → 10 s backoff. The SDK's own retries are disabled so behaviour is explicit.

@@ -98,7 +98,7 @@ Plus two guardrail tests:
 
 And 8 regression tests, one per starter-code bug in section 4 (all **PASS** on the new agent).
 
-Test run output: offline `Ran 25 tests — OK` (12 original + 4 organiser-update + 6 briefing-grounding + 1 action-scope + 2 overruled-Gemini); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
+Test run output: offline `Ran 26 tests — OK` (12 original + 4 organiser-update + 6 briefing-grounding + 1 action-scope + 2 overruled-Gemini + 1 CLI); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
 
 ---
 
@@ -108,7 +108,7 @@ Test run output: offline `Ran 25 tests — OK` (12 original + 4 organiser-update
 
 | # | Bug (observed output of original code) | Root cause | Fix |
 |---|---|---|---|
-| B1 | DBA EMP-001 accessing a **non-approved** system `payments_switch` → `P4_LOW false_positive close_false_positive` | Raw data uses key `system`, code read `accessed_system` → `""`; and `"" in "core_banking_db,..."` is always `True` (substring test on a comma string) | Read both keys; split approved systems into a list and test exact membership (`soc/evidence.py`) |
+| B1 | DBA EMP-001 accessing a **non-approved** system `payments_switch` → `P4_LOW false_positive close_false_positive` | Raw data uses key `system`, code read `accessed_system` → `""`; and `"" in "core_banking_db,..."` is always `True` (substring test on a comma string) | Read both keys; split approved systems into a list and test exact membership (`novapay_soc/evidence.py`) |
 | B2 | Safe AWS CloudFront IP 52.87.144.5 → `KNOWN_THREAT_ACTOR` and `BLOCK_IP` on it (old report claimed the opposite) | Any IP present in threat_intel.csv counted as a threat, including rows with confidence `NONE` | Split into `threat_hits` vs `safe_ips` by confidence |
 | B3 | 6 micro-charges over **180 min** → card frozen (`auto_remediate`) | `window_minutes` ignored; CAT-05 requires ≤ 15 min | Window enforced; otherwise inconclusive → investigation |
 | B4 | Customer with travel flag but **3 MFA failures** + $400 tx → closed as false positive | Operator precedence: `a and (b) or c` | Explicit conditions; FP requires 0 MFA failures and no transaction |
@@ -186,6 +186,17 @@ have produced. All replaced with measured results.
     cited for an account takeover because it is a valid handbook code. *Fix:* when Gemini is overruled on the
     category its citations are dropped, and Gemini may never cite a NOVAPAY-CAT rule other than the final
     category's. The submitted output.csv was scanned: no row was affected by 12 or 13 (Gemini agreed on all 10).
+
+14. **`ModuleNotFoundError: No module named 'soc.corpus'` on a university PC.** The package was called `soc`,
+    a generic name that also exists on PyPI; when another `soc` is on the PC's Python path, Python picks it
+    and `soc.corpus` "does not exist". *Fix:* renamed the package to `novapay_soc`, and the entry points now
+    print a plain-English fix instead of a traceback if the package cannot be imported. Verified 9 ways of
+    running it (from `code/`, from the project root, from another folder, with a conflicting `soc`
+    installed or already imported, tests from both folders, the web console).
+15. **Demo runs overwrote the submitted evidence.** `python agent.py --output demo.csv` still wrote
+    `evaluation/trace_benchmark.json` and `usage_benchmark.json`. *Fix:* side runs write their trace/usage
+    next to their own output file. Regression test added.
+16. **`--output` into a new folder crashed** (`FileNotFoundError`). *Fix:* parent folders are created.
 
 ---
 

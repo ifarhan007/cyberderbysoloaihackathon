@@ -22,11 +22,21 @@ from flask import Flask, abort, jsonify, request, send_from_directory
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from agent import EVAL_DIR, load_env, write_csv                     # noqa: E402
-from soc.corpus import BASE, DATASET, load_corpus, load_requests     # noqa: E402
-from soc.evidence import build_evidence                              # noqa: E402
-from soc.llm import GeminiClient                                     # noqa: E402
-from soc.pipeline import TriageAgent, validate_incident              # noqa: E402
+def _import_help(err):
+    sys.exit(f"[!] Could not import the agent package ({err}).\n"
+             f"    Expected the folder {HERE / 'novapay_soc'} with corpus.py, evidence.py, policy.py, llm.py, pipeline.py.\n"
+             "    Fix: open a terminal in the 'code' folder and run the command from there, e.g.\n"
+             "         cd code\n         python evaluate.py\n"
+             "    and make sure the whole project was downloaded (GitHub: Code -> Download ZIP).")
+
+try:
+    from agent import EVAL_DIR, load_env, write_csv                     # noqa: E402
+    from novapay_soc.corpus import BASE, DATASET, load_corpus, load_requests     # noqa: E402
+    from novapay_soc.evidence import build_evidence                              # noqa: E402
+    from novapay_soc.llm import GeminiClient                                     # noqa: E402
+    from novapay_soc.pipeline import TriageAgent, validate_incident              # noqa: E402
+except ImportError as _e:  # e.g. another package called 'soc' on a shared PC
+    _import_help(_e)
 
 load_env()
 CORPUS = load_corpus()

@@ -25,9 +25,19 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from soc.corpus import BASE, DATASET, load_corpus, load_requests   # noqa: E402
-from soc.llm import GeminiClient, LLMError                          # noqa: E402
-from soc.pipeline import FIELDNAMES, TriageAgent                    # noqa: E402
+def _import_help(err):
+    sys.exit(f"[!] Could not import the agent package ({err}).\n"
+             f"    Expected the folder {HERE / 'novapay_soc'} with corpus.py, evidence.py, policy.py, llm.py, pipeline.py.\n"
+             "    Fix: open a terminal in the 'code' folder and run the command from there, e.g.\n"
+             "         cd code\n         python evaluate.py\n"
+             "    and make sure the whole project was downloaded (GitHub: Code -> Download ZIP).")
+
+try:
+    from novapay_soc.corpus import BASE, DATASET, load_corpus, load_requests   # noqa: E402
+    from novapay_soc.llm import GeminiClient, LLMError                          # noqa: E402
+    from novapay_soc.pipeline import FIELDNAMES, TriageAgent                    # noqa: E402
+except ImportError as _e:  # e.g. another package called 'soc' on a shared PC
+    _import_help(_e)
 
 EVAL_DIR = HERE / "evaluation"
 
@@ -48,6 +58,7 @@ def load_env(path: Path = HERE / ".env"):
 
 
 def write_csv(rows: list[dict], path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)      # --output into a new folder used to crash
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDNAMES, quoting=csv.QUOTE_MINIMAL)
         w.writeheader()
@@ -92,6 +103,9 @@ def main(argv=None) -> int:
     inp = args.input or (DATASET / ("sample_requests.csv" if args.samples else "requests.csv"))
     out = args.output or (EVAL_DIR / "sample_predictions.csv" if args.samples else BASE / "output.csv")
     tag = "samples" if args.samples else "benchmark"
+    # A custom --output is a demo/side run: keep its trace + usage next to that file so the
+    # submitted run's evidence in evaluation/ is never overwritten.
+    log_dir, log_tag = (EVAL_DIR, tag) if args.output is None else (out.parent, out.stem)
 
     print("=" * 66)
     print("  NovaPay SOC — Autonomous Triage Agent")
@@ -121,16 +135,18 @@ def main(argv=None) -> int:
     write_csv(rows, out)
 
     EVAL_DIR.mkdir(exist_ok=True)
-    (EVAL_DIR / f"trace_{tag}.json").write_text(json.dumps(traces, indent=2, default=str))
+    log_dir.mkdir(parents=True, exist_ok=True)
+    trace_path, usage_path = log_dir / f"trace_{log_tag}.json", log_dir / f"usage_{log_tag}.json"
+    trace_path.write_text(json.dumps(traces, indent=2, default=str))
     usage = {"run": tag, "mode": agent.mode, "incidents": len(rows), "wall_time_s": round(elapsed, 1),
              **agent.llm.usage_summary(), "calls": agent.llm.calls}
-    (EVAL_DIR / f"usage_{tag}.json").write_text(json.dumps(usage, indent=2))
+    usage_path.write_text(json.dumps(usage, indent=2))
 
     overrides = sum(1 for t in traces if t["guardrails"])
     usage["engine_per_incident"] = {t["request_id"]: t["engine"] for t in traces}
-    (EVAL_DIR / f"usage_{tag}.json").write_text(json.dumps(usage, indent=2))
+    usage_path.write_text(json.dumps(usage, indent=2))
     print(f"\n[+] Wrote {len(rows)} rows -> {out}")
-    print(f"[+] Reasoning trace -> evaluation/trace_{tag}.json  |  usage -> evaluation/usage_{tag}.json")
+    print(f"[+] Reasoning trace -> {trace_path}  |  usage -> {usage_path}")
     print(f"[*] Wall time {elapsed:.1f}s | Gemini calls {usage['http_calls']} "
           f"(ok {usage['successful_calls']}) | tokens in/out/thinking "
           f"{usage['input_tokens']}/{usage['output_tokens']}/{usage['thinking_tokens']} | "
