@@ -33,7 +33,7 @@ requests.csv row
 output.csv row  +  evaluation/trace_*.json (evidence, rules, LLM reasoning, guardrail actions, engine)
 ```
 
-## Why hybrid? (viva answer)
+## Why hybrid?
 * Rules are **auditable and repeatable** — a bank cannot let an LLM's mood decide P1 vs P4.
 * The LLM adds **reasoning on messy/novel text**, writes evidence-grounded briefings, proposes extra
   containment steps, detects manipulation the regexes miss, and acts as a second opinion that
