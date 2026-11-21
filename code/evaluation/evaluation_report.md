@@ -28,36 +28,36 @@ Also added: `evaluate.py` now scores the **ordered containment action codes** ag
 
 ## 1. Sample benchmark (dataset/sample_requests.csv vs dataset/sample_output.csv)
 
-| ID | Ground truth (sev / cat / decision / window) | Agent prediction | Plan = ground truth (ordered codes) | Engine | Match |
-|---|---|---|---|---|---|
-| INC-S001 | P4_LOW / false_positive / close_false_positive / N/A | P4_LOW / false_positive / close_false_positive / N/A (conf 0.85) | ✅ CLOSE_TICKET | deterministic_fallback | ✅ |
-| INC-S002 | P2_HIGH / api_abuse / auto_remediate / 2hr | P2_HIGH / api_abuse / auto_remediate / 2hr (conf 0.87) | ✅ RATE_LIMIT_API → BLOCK_IP → NOTIFY_CUSTOMER → MONITOR_72H | deterministic_fallback | ✅ |
-| INC-S003 | P2_HIGH / phishing / escalate_to_soc / 2hr | P2_HIGH / phishing / escalate_to_soc / 2hr (conf 0.87) | ✅ ALERT_SOC_TIER2 → NOTIFY_CISO → MONITOR_72H | deterministic_fallback | ✅ |
+| ID | Ground truth (sev / cat / decision / window) | Agent prediction | Plan = ground truth (ordered codes) | Engine | Gemini agreed | Match |
+|---|---|---|---|---|---|---|
+| INC-S001 | P4_LOW / false_positive / close_false_positive / N/A | P4_LOW / false_positive / close_false_positive / N/A (conf 0.94) | ✅ CLOSE_TICKET | gemini+guardrails | yes | ✅ |
+| INC-S002 | P2_HIGH / api_abuse / auto_remediate / 2hr | P2_HIGH / api_abuse / auto_remediate / 2hr (conf 0.96) | ✅ RATE_LIMIT_API → BLOCK_IP → NOTIFY_CUSTOMER → MONITOR_72H | gemini+guardrails | yes | ✅ |
+| INC-S003 | P2_HIGH / phishing / escalate_to_soc / 2hr | P2_HIGH / phishing / escalate_to_soc / 2hr (conf 0.96) | ✅ ALERT_SOC_TIER2 → NOTIFY_CISO → MONITOR_72H | gemini+guardrails | yes | ✅ |
 
 Risk flags vs ground truth: INC-S001 `NONE` = `NONE`; INC-S003 `NONE` = `NONE`; INC-S002 agent `KNOWN_THREAT_ACTOR` vs ground truth `NONE` — the ground-truth briefing itself calls 45.142.212.100 "a known credential-stuffing node", so the agent keeps the flag the evidence supports (`evaluate.py` scores only severity/category/decision).
 
 `evaluate.py` result (current, after organiser updates): `Schema valid: YES`, `Output rows: 10/10`, `Sample accuracy: 3/3`, field accuracy severity 3/3, category 3/3, decision 3/3, containment window 3/3, **containment plan (ordered action codes) 3/3 exact match**.
 
-The earlier Gemini run of these samples (before the update) also scored 3/3 on severity/category/decision; it is kept in `trace_samples_gemini_pre_update.json`.
+The pre-update Gemini run of these samples is kept in `trace_samples_gemini_pre_update.json`.
 
 ---
 
 ## 2. Full benchmark (dataset/requests.csv → output.csv)
 
-| ID | Severity | Category | Decision | Window | Conf | Risk flags | Engine |
-|---|---|---|---|---|---|---|---|
-| INC-3001 | P1_CRITICAL | account_takeover | escalate_to_soc | 15min | 0.87 | REPEAT_OFFENDER | deterministic_fallback |
-| INC-3002 | P1_CRITICAL | insider_threat | flag_for_investigation | 15min | 0.89 | KNOWN_THREAT_ACTOR|INSIDER_RISK|DATA_EXFILTRATION_RISK|RESIGNED_EMPLOYEE | deterministic_fallback |
-| INC-3003 | P2_HIGH | api_abuse | auto_remediate | 2hr | 0.85 | KNOWN_THREAT_ACTOR | deterministic_fallback |
-| INC-3004 | P4_LOW | false_positive | close_false_positive | N/A | 0.85 | NONE | deterministic_fallback |
-| INC-3005 | P1_CRITICAL | card_fraud | escalate_to_soc | 15min | 0.87 | REPEAT_OFFENDER | deterministic_fallback |
-| INC-3006 | P2_HIGH | social_engineering | escalate_to_soc | 2hr | 0.85 | NONE | deterministic_fallback |
-| INC-3007 | P1_CRITICAL | ransomware | escalate_to_soc | 15min | 0.85 | KNOWN_THREAT_ACTOR|DATA_EXFILTRATION_RISK | deterministic_fallback |
-| INC-3008 | P2_HIGH | phishing | escalate_to_soc | 2hr | 0.87 | KNOWN_THREAT_ACTOR | deterministic_fallback |
-| INC-3009 | P4_LOW | false_positive | close_false_positive | N/A | 0.87 | NONE | deterministic_fallback |
-| INC-3010 | P2_HIGH | prompt_injection | flag_for_investigation | 2hr | 0.83 | PROMPT_INJECTION_DETECTED | deterministic_fallback |
+| ID | Severity | Category | Decision | Window | Conf | Risk flags | Engine (model) | Gemini agreed |
+|---|---|---|---|---|---|---|---|---|
+| INC-3001 | P1_CRITICAL | account_takeover | escalate_to_soc | 15min | 0.96 | REPEAT_OFFENDER | gemini+guardrails (gemini-3.6-flash) | yes |
+| INC-3002 | P1_CRITICAL | insider_threat | flag_for_investigation | 15min | 0.98 | KNOWN_THREAT_ACTOR|INSIDER_RISK|DATA_EXFILTRATION_RISK|RESIGNED_EMPLOYEE | gemini+guardrails (gemini-3.6-flash) | yes |
+| INC-3003 | P2_HIGH | api_abuse | auto_remediate | 2hr | 0.94 | KNOWN_THREAT_ACTOR | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3004 | P4_LOW | false_positive | close_false_positive | N/A | 0.94 | NONE | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3005 | P1_CRITICAL | card_fraud | escalate_to_soc | 15min | 0.96 | REPEAT_OFFENDER | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3006 | P2_HIGH | social_engineering | escalate_to_soc | 2hr | 0.94 | NONE | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3007 | P1_CRITICAL | ransomware | escalate_to_soc | 15min | 0.94 | KNOWN_THREAT_ACTOR|DATA_EXFILTRATION_RISK | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3008 | P2_HIGH | phishing | escalate_to_soc | 2hr | 0.96 | KNOWN_THREAT_ACTOR | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3009 | P4_LOW | false_positive | close_false_positive | N/A | 0.96 | NONE | gemini+guardrails (gemini-3.5-flash-lite) | yes |
+| INC-3010 | P2_HIGH | prompt_injection | flag_for_investigation | 2hr | 0.92 | PROMPT_INJECTION_DETECTED | gemini+guardrails (gemini-3.5-flash-lite) | yes |
 
-The current `output.csv` was regenerated with the deterministic engine after the organiser updates (no working Gemini key at that moment). Decisions are identical (10/10) to the earlier Gemini + guardrails run, in which Gemini agreed with the policy engine on all 10 incidents; that run is preserved as `evaluation/output_gemini_pre_update.csv` with its trace and usage files. It will be re-run with Gemini once a new key is configured.
+All 10 rows were produced by Gemini + guardrails with a new API key after the organiser updates; Gemini agreed with the policy engine on every field, and every briefing passed the grounding checks (0 problems).
 
 Ground truth for these 10 incidents is not provided, so they were checked by hand against the
 policy handbook. Notable reasoning:
@@ -98,7 +98,7 @@ Plus two guardrail tests:
 
 And 8 regression tests, one per starter-code bug in section 4 (all **PASS** on the new agent).
 
-Test run output: offline `Ran 16 tests — OK` (12 original + 4 for the organiser updates); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
+Test run output: offline `Ran 23 tests — OK` (12 original + 4 organiser-update + 6 briefing-grounding + 1 action-scope); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
 
 ---
 
@@ -147,19 +147,39 @@ have produced. All replaced with measured results.
    login with 2 MFA failures and a $7,200 transfer as a false positive because the VP had a travel
    flag; in EDGE-07 it proposed false_positive for an incident whose data was unreadable. Both were
    overridden (CAT-01 thresholds / PCI-DSS-12.10) and confidence dropped to 0.69 and 0.30.
-7. **Numeric wording error in a Gemini briefing (not fixed in output.csv).** INC-3005 briefing says
-   "7 micro-transactions totaling under $2"; the evidence says each was under $2 (total $7.43). The
-   briefing check validates word count and identifiers/IPs, not numeric claims. Left as produced
-   (manual edits to output.csv are prohibited); a numeric cross-check is listed as future work.
+7. **Numeric wording error in a Gemini briefing (first run).** INC-3005's briefing said "7 micro-transactions
+   totaling under $2"; the evidence says each was under $2 (total $7.43). At that point the briefing check only
+   validated word count and identifiers. It was left as produced (manual edits to output.csv are prohibited)
+   and fixed properly later by the agent itself; see item 9.
 8. **Gemini vs rules disagreement (INC-3004, INC-3009, development run).** Gemini proposed P3 for the two false
    positives, applying SEV-02 (privileged account) on top of a fully explained event. Guardrail kept
    P4 (CAT-09 + sample INC-S001 shows fully explained events are P4); the disagreement lowered the
    confidence score and is logged in the trace.
 
+9. **Gemini wording errors in briefings (fixed).** Reading the post-update Gemini briefings showed: INC-3005
+   "7 micro-transactions *totaling* under $2.00" (each was under $2; the total was $7.43; the same error
+   appeared in the first run), INC-3003 "containment actions *executed*" (the system only recommends), and
+   INC-3006 "MFA reset required *per policy*" (the handbook says no such thing). *Fix:* stricter prompt rules
+   (quote numbers exactly, never compute totals, simulation wording, only attribute requirements the handbook
+   states) plus deterministic checks that reject derived totals, "executed" claims and dollar amounts not in
+   the evidence; a rejected briefing gets one repair call, then a deterministic briefing.
+10. **Bugs in that new check (found by testing it on real briefings).** "$5,000" was flagged as invented
+    because the number parser split "5,000" at the comma, and "Customer executed 7 transactions" was flagged
+    as an action claim. *Fix:* strip thousands separators; only flag "actions/steps … executed" or
+    "was/were frozen/blocked/…". Regression tests added for both.
+11. **Gemini re-added an action the organisers removed.** After update `e5eea08`, Gemini proposed
+    `REVOKE_API_KEY` for INC-S002 again, and the guardrail accepted it as an "extra step" (sample plan check
+    fell to 2/3). Same root cause as the earlier unrequested `FORCE_MFA_RESET` on INC-3006. *Fix:* Gemini may
+    only add low-impact visibility steps (`ALERT_SOC_TIER2`, `NOTIFY_CISO`, `MONITOR_72H`,
+    `PRESERVE_FORENSICS`); any action that changes accounts, keys, network or ticket state must come from a
+    policy rule. Plan check back to 3/3.
+
 ---
 
 ## 5. Known limitations
 
+* Briefing checks catch invented IDs/IPs, amounts, totals and "executed" claims, but not every possible
+  misstatement (e.g. a wrong policy attribution in free text); the prompt rules address those.
 * The rule thresholds encode **my reading** of the handbook. Where the policy is silent (severity of
   CAT-10, severity of social engineering with no disclosure, which systems count as "affected"),
   choices are documented above but may differ from the jury's answer key.

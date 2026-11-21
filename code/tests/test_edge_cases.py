@@ -256,3 +256,55 @@ class OrganiserUpdateTests(unittest.TestCase):
         p = self.plan(inc("API-1", "API-KEY-331", "system", "Burst.", {"api_key_id": "API-KEY-331",
                       "requests_per_minute": 1240, "http_401_rate": 0.94, "source_ip": "45.142.212.100"}))
         self.assertIn("REVOKE_API_KEY", p)
+
+
+class BriefingGroundingTests(unittest.TestCase):
+    """Gemini wording errors seen in real runs: invented totals, 'executed' claims, unknown amounts."""
+
+    @classmethod
+    def setUpClass(cls):
+        from soc.evidence import build_evidence
+        from soc.pipeline import briefing_problems
+        cls.check = staticmethod(briefing_problems)
+        cls.inc = inc("INC-3005", "CUST-7734", "customer", "7 charges",
+                      {"card_id": "CARD-7734-X", "transaction_count": 7,
+                       "transaction_amounts": [0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 1.49], "window_minutes": 7})
+        cls.ev = build_evidence(cls.inc, CORPUS)
+        cls.pad = " Card CARD-7734-X for CUST-7734 shows card testing under NOVAPAY-CAT-05 with escalation to P1 " \
+                  "because a prior fraud flag exists in incident history within ninety days of this event."
+
+    def test_total_is_rejected(self):
+        p = self.check("Customer CUST-7734 made 7 micro-transactions totaling under $2.00." + self.pad, self.ev, self.inc)
+        self.assertTrue(any("computed total" in x for x in p))
+
+    def test_executed_claim_is_rejected(self):
+        p = self.check("The card was frozen and containment actions executed." + self.pad, self.ev, self.inc)
+        self.assertTrue(any("simulation" in x for x in p))
+
+    def test_invented_amount_is_rejected(self):
+        p = self.check("Charges reached $9,999 on the card." + self.pad, self.ev, self.inc)
+        self.assertTrue(any("amounts not found" in x for x in p))
+
+    def test_grounded_briefing_passes(self):
+        p = self.check("Seven charges of $0.99 and one of $1.49, each under $2.00, in 7 minutes; freezing the "
+                       "card is recommended." + self.pad, self.ev, self.inc)
+        self.assertEqual(p, [])
+
+    def test_policy_threshold_amount_allowed(self):          # bug: "$5,000" was split at the comma
+        p = self.check("The transfer exceeds the $5,000 SEV-01 threshold." + self.pad, self.ev, self.inc)
+        self.assertFalse(any("amounts" in x for x in p))
+
+    def test_customer_executed_transactions_allowed(self):   # bug: "executed 7 transactions" is not an action claim
+        p = self.check("Customer CUST-7734 executed 7 micro-transactions, each under $2.00." + self.pad, self.ev, self.inc)
+        self.assertFalse(any("simulation" in x for x in p))
+
+
+class LLMActionScopeTests(unittest.TestCase):
+    def test_llm_cannot_add_high_impact_actions(self):
+        """Real failure: Gemini re-added REVOKE_API_KEY to INC-S002 after the organisers removed it."""
+        from soc.pipeline import merge_actions
+        base = [{"step": 1, "action": "RATE_LIMIT_API"}, {"step": 2, "action": "MONITOR_72H"}]
+        extra = [{"action": "REVOKE_API_KEY"}, {"action": "FREEZE_ACCOUNT"}, {"action": "FORCE_MFA_RESET"},
+                 {"action": "NOTIFY_CISO"}]
+        got = [a["action"] for a in merge_actions(base, extra, "api_abuse")]
+        self.assertEqual(got, ["RATE_LIMIT_API", "MONITOR_72H", "NOTIFY_CISO"])

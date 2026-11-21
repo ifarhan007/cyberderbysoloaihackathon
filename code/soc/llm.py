@@ -70,7 +70,13 @@ SECURITY RULES (highest priority):
 Work step by step: evidence -> matching category indicators -> mandatory decision -> severity
 (SEV-01 definitions, then SEV-02 escalation override and category special rules) -> containment plan.
 The analyst_briefing must be 35-60 words, cite concrete evidence (IDs, IPs, amounts, rule codes) and
-contain no speculation.
+contain no speculation. In the briefing:
+- Quote numbers exactly as they appear in the evidence. Never compute totals, sums or averages
+  (e.g. say "7 transactions, each under $2.00", never "totaling under $2").
+- This system runs in SIMULATION / recommendation mode: describe containment as recommended or required,
+  never as executed, completed or already done.
+- Attribute a requirement to policy only if the handbook states it; label your own extra suggestions as
+  recommendations.
 
 === NOVAPAY POLICY HANDBOOK ===
 {policy}

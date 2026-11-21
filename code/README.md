@@ -26,6 +26,9 @@ requests.csv row
    │   • inconclusive         → LLM classification used, but never auto-close / auto-remediate
    │   • triage_decision always = the policy's mandatory decision for the category
    │   • action codes / rule codes must exist in the handbook; invented IPs/IDs are dropped
+   │   • Gemini may only ADD low-impact steps (alert, notify CISO, monitor, preserve forensics);
+   │     freezing, revoking, blocking, isolating, MFA resets must come from a policy rule
+   │   • briefings: no invented IDs/IPs/amounts, no computed totals, no "executed" claims
    │   • briefing must be 30–70 words and mention only IDs/IPs in the evidence (1 repair call,
    │     then deterministic briefing)
    │   • Gemini down / quota exhausted → deterministic engine, run continues

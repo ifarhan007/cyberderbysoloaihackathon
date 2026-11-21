@@ -1,29 +1,153 @@
 {
   "run": "benchmark",
-  "mode": "offline policy engine (no API key)",
+  "mode": "gemini (gemini-3.5-flash) + policy guardrails",
   "incidents": 10,
-  "wall_time_s": 0.0,
-  "http_calls": 0,
-  "successful_calls": 0,
-  "failed_calls": 0,
-  "input_tokens": 0,
-  "output_tokens": 0,
-  "thinking_tokens": 0,
-  "avg_latency_s": 0,
-  "max_latency_s": 0,
-  "models_used": [],
-  "models_quota_exhausted": [],
-  "calls": [],
+  "wall_time_s": 122.9,
+  "http_calls": 11,
+  "successful_calls": 10,
+  "failed_calls": 1,
+  "input_tokens": 28047,
+  "output_tokens": 4554,
+  "thinking_tokens": 4885,
+  "avg_latency_s": 12.22,
+  "max_latency_s": 90.22,
+  "models_used": [
+    "gemini-3.5-flash-lite",
+    "gemini-3.6-flash"
+  ],
+  "models_quota_exhausted": [
+    "gemini-3.5-flash"
+  ],
+  "calls": [
+    {
+      "tag": "INC-3001:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "latency_s": 17.66,
+      "input_tokens": 2847,
+      "output_tokens": 498,
+      "thinking_tokens": 2449,
+      "model_version": "gemini-3.6-flash",
+      "ok": true
+    },
+    {
+      "tag": "INC-3002:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "latency_s": 90.22,
+      "input_tokens": 2971,
+      "output_tokens": 568,
+      "thinking_tokens": 2436,
+      "model_version": "gemini-3.6-flash",
+      "ok": true
+    },
+    {
+      "tag": "INC-3003:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "ok": false,
+      "latency_s": 0.24,
+      "error": "HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, h"
+    },
+    {
+      "tag": "INC-3003:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.76,
+      "input_tokens": 2776,
+      "output_tokens": 517,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3004:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.58,
+      "input_tokens": 2784,
+      "output_tokens": 353,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3005:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 2.12,
+      "input_tokens": 2783,
+      "output_tokens": 524,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3006:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.93,
+      "input_tokens": 2736,
+      "output_tokens": 370,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3007:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 2.06,
+      "input_tokens": 2791,
+      "output_tokens": 623,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3008:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.74,
+      "input_tokens": 2747,
+      "output_tokens": 425,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3009:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.61,
+      "input_tokens": 2877,
+      "output_tokens": 328,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-3010:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.57,
+      "input_tokens": 2735,
+      "output_tokens": 348,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    }
+  ],
   "engine_per_incident": {
-    "INC-3001": "deterministic_fallback",
-    "INC-3002": "deterministic_fallback",
-    "INC-3003": "deterministic_fallback",
-    "INC-3004": "deterministic_fallback",
-    "INC-3005": "deterministic_fallback",
-    "INC-3006": "deterministic_fallback",
-    "INC-3007": "deterministic_fallback",
-    "INC-3008": "deterministic_fallback",
-    "INC-3009": "deterministic_fallback",
-    "INC-3010": "deterministic_fallback"
+    "INC-3001": "gemini+guardrails",
+    "INC-3002": "gemini+guardrails",
+    "INC-3003": "gemini+guardrails",
+    "INC-3004": "gemini+guardrails",
+    "INC-3005": "gemini+guardrails",
+    "INC-3006": "gemini+guardrails",
+    "INC-3007": "gemini+guardrails",
+    "INC-3008": "gemini+guardrails",
+    "INC-3009": "gemini+guardrails",
+    "INC-3010": "gemini+guardrails"
   }
 }

@@ -37,6 +37,22 @@ ID_RE = re.compile(r"\b(?:EMP-\d+|CUST-\d+|API-KEY-\d+|SRV-[A-Z0-9-]+|CARD-[A-Z0
 IP_ONLY = re.compile(r"(?:\d{1,3}\.){3}\d{1,3}")
 
 
+MONEY_RE = re.compile(r"\$\s?[0-9][0-9,]*(?:\.[0-9]+)?")
+TOTAL_RE = re.compile(r"\b(total(?:l?ing|ed)?|in total|sum(?:ming)? to|combined)\b", re.I)
+EXECUTED_RE = re.compile(r"\b((?:actions?|containment|steps?|measures?)\s+(?:(?:were|have been|has been|was)\s+)?"
+                         r"(?:executed|carried out|completed|implemented)|(?:was|were|has been|have been)\s+(?:frozen|"
+                         r"blocked|revoked|isolated|reset|rate[- ]limited|closed|preserved))\b", re.I)
+POLICY_AMOUNTS = "$5,000 $500 $2.00"   # thresholds quoted in the handbook (SEV-01, CAT-01, CAT-05)
+
+
+def _num_key(x: str) -> str:
+    v = re.sub(r"[^0-9.]", "", x).strip(".")
+    try:
+        return f"{float(v):.2f}"
+    except ValueError:
+        return v
+
+
 def word_count(s: str) -> int:
     return len(s.split())
 
@@ -91,6 +107,16 @@ def briefing_problems(text: str, ev: dict, incident: dict) -> list[str]:
     invented = [t for t in ID_RE.findall(text or "") if t not in known]
     if invented:
         probs.append(f"briefing mentions identifiers not present in the evidence: {invented}")
+    # Numeric grounding: dollar amounts must appear in the evidence or as a policy threshold; no derived totals.
+    digits = re.sub(r"[^0-9.]", " ", (known + " " + POLICY_AMOUNTS).replace(",", ""))   # "5,000" -> "5000"
+    known_nums = {_num_key(x) for x in digits.split() if any(ch.isdigit() for ch in x)}
+    bad_amounts = [a for a in MONEY_RE.findall(text or "") if _num_key(a) not in known_nums]
+    if bad_amounts:
+        probs.append(f"briefing states amounts not found in the evidence: {bad_amounts}")
+    if TOTAL_RE.search(text or ""):
+        probs.append("briefing states a computed total; quote the individual values from the evidence instead")
+    if EXECUTED_RE.search(text or ""):
+        probs.append("briefing claims actions were executed; this system only recommends actions (simulation mode)")
     return probs
 
 
@@ -113,8 +139,16 @@ def clean_actions(actions, valid_codes: set, evidence_text: str) -> list[dict]:
     return out
 
 
+LLM_ALLOWED_EXTRAS = {"ALERT_SOC_TIER2", "NOTIFY_CISO", "MONITOR_72H", "PRESERVE_FORENSICS"}
+
+
 def merge_actions(base: list[dict], extra: list[dict], cat: str) -> list[dict]:
-    """Policy plan first (mandatory), then up to 2 extra LLM-suggested steps that add new action codes."""
+    """Policy plan first (mandatory), then up to 2 extra LLM-suggested steps that add new action codes.
+
+    The LLM may only add low-impact visibility steps. Anything that changes accounts, keys, network access or
+    ticket state (freeze, revoke, block, isolate, MFA reset, rate-limit, patch, close, customer notice) must
+    come from a policy rule — e.g. organiser update e5eea08 removed REVOKE_API_KEY for INC-S002 and Gemini
+    tried to add it back."""
     if cat == "false_positive":
         merged = [a for a in base if a["action"] == "CLOSE_TICKET"]
     else:
@@ -122,7 +156,7 @@ def merge_actions(base: list[dict], extra: list[dict], cat: str) -> list[dict]:
         have = {a["action"] for a in merged}
         added = 0
         for a in extra:
-            if a["action"] not in have and a["action"] != "CLOSE_TICKET" and added < 2:
+            if a["action"] not in have and a["action"] in LLM_ALLOWED_EXTRAS and added < 2:
                 merged.append(a); have.add(a["action"]); added += 1
     if cat == "insider_threat":   # CAT-02: forensics before anything else
         merged.sort(key=lambda a: a["action"] != "PRESERVE_FORENSICS")

@@ -1,22 +1,68 @@
 {
   "run": "samples",
-  "mode": "offline policy engine (no API key)",
+  "mode": "gemini (gemini-3.5-flash) + policy guardrails",
   "incidents": 3,
-  "wall_time_s": 0.0,
-  "http_calls": 0,
-  "successful_calls": 0,
-  "failed_calls": 0,
-  "input_tokens": 0,
-  "output_tokens": 0,
+  "wall_time_s": 5.6,
+  "http_calls": 4,
+  "successful_calls": 3,
+  "failed_calls": 1,
+  "input_tokens": 8246,
+  "output_tokens": 1267,
   "thinking_tokens": 0,
-  "avg_latency_s": 0,
-  "max_latency_s": 0,
-  "models_used": [],
-  "models_quota_exhausted": [],
-  "calls": [],
+  "avg_latency_s": 1.59,
+  "max_latency_s": 1.76,
+  "models_used": [
+    "gemini-3.5-flash-lite"
+  ],
+  "models_quota_exhausted": [
+    "gemini-3.5-flash"
+  ],
+  "calls": [
+    {
+      "tag": "INC-S001:triage",
+      "model": "gemini-3.5-flash",
+      "attempt": 1,
+      "ok": false,
+      "latency_s": 0.49,
+      "error": "HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, h"
+    },
+    {
+      "tag": "INC-S001:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.51,
+      "input_tokens": 2694,
+      "output_tokens": 353,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-S002:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.76,
+      "input_tokens": 2800,
+      "output_tokens": 502,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    },
+    {
+      "tag": "INC-S003:triage",
+      "model": "gemini-3.5-flash-lite",
+      "attempt": 1,
+      "latency_s": 1.51,
+      "input_tokens": 2752,
+      "output_tokens": 412,
+      "thinking_tokens": 0,
+      "model_version": "gemini-3.5-flash-lite",
+      "ok": true
+    }
+  ],
   "engine_per_incident": {
-    "INC-S001": "deterministic_fallback",
-    "INC-S002": "deterministic_fallback",
-    "INC-S003": "deterministic_fallback"
+    "INC-S001": "gemini+guardrails",
+    "INC-S002": "gemini+guardrails",
+    "INC-S003": "gemini+guardrails"
   }
 }
