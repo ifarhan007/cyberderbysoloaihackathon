@@ -98,7 +98,7 @@ Plus two guardrail tests:
 
 And 8 regression tests, one per starter-code bug in section 4 (all **PASS** on the new agent).
 
-Test run output: offline `Ran 23 tests — OK` (12 original + 4 organiser-update + 6 briefing-grounding + 1 action-scope); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
+Test run output: offline `Ran 25 tests — OK` (12 original + 4 organiser-update + 6 briefing-grounding + 1 action-scope + 2 overruled-Gemini); with Gemini (`RUN_LLM_TESTS=1`, before the update) `Ran 12 tests in 20.360s — OK`.
 
 ---
 
@@ -173,6 +173,19 @@ have produced. All replaced with measured results.
     only add low-impact visibility steps (`ALERT_SOC_TIER2`, `NOTIFY_CISO`, `MONITOR_72H`,
     `PRESERVE_FORENSICS`); any action that changes accounts, keys, network or ticket state must come from a
     policy rule. Plan check back to 3/3.
+
+12. **Overruled Gemini briefing contradicted the final decision (found in a live console demo).** For the
+    adversarial demo (VP with a travel flag, 2 MFA failures, $7,200 transfer) Gemini answered false positive.
+    The guardrails correctly overruled it to account_takeover / P1 / escalate, but the console still showed
+    Gemini's briefing ending "...classified as a false positive". *Root cause:* the briefing check validated
+    the text on its own, not against the final decision. *Fix:* when Gemini is overruled on category or decision,
+    its briefing is sent back for one repair call that states the final decision; a briefing that says "false
+    positive" for a non-FP incident is always rejected; failing that, the deterministic briefing is used.
+    Verified live with Gemini: the repaired briefing now explains the P1 account takeover.
+13. **Overruled Gemini citations leaked into the row (same demo).** `NOVAPAY-CAT-09` (false positive) was
+    cited for an account takeover because it is a valid handbook code. *Fix:* when Gemini is overruled on the
+    category its citations are dropped, and Gemini may never cite a NOVAPAY-CAT rule other than the final
+    category's. The submitted output.csv was scanned: no row was affected by 12 or 13 (Gemini agreed on all 10).
 
 ---
 

@@ -218,7 +218,7 @@ function renderDetail(item, opts = {}) {
   const brief = h("section", { class: "card" },
     h("div", { class: "card-title" }, "Analyst briefing", h("span", { class: "count" }, `${o.analyst_briefing.split(/\s+/).filter(Boolean).length} words`)),
     h("div", { class: "briefing" }, o.analyst_briefing),
-    h("div", { class: "briefing-foot" }, isAI(t) ? "Written by Gemini from verified evidence; checked for length and invented identifiers." :
+    h("div", { class: "briefing-foot" }, isAI(t) ? "Written by Gemini from verified evidence; checked for length, invented IDs/IPs/amounts, totals, \"executed\" claims and agreement with the final decision." :
       "Generated deterministically from verified evidence."));
 
   const agreeAll = ag && Object.values(ag).every(Boolean);

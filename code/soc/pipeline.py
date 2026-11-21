@@ -37,6 +37,7 @@ ID_RE = re.compile(r"\b(?:EMP-\d+|CUST-\d+|API-KEY-\d+|SRV-[A-Z0-9-]+|CARD-[A-Z0
 IP_ONLY = re.compile(r"(?:\d{1,3}\.){3}\d{1,3}")
 
 
+FP_RE = re.compile(r"\bfalse[ -]positive\b", re.I)
 MONEY_RE = re.compile(r"\$\s?[0-9][0-9,]*(?:\.[0-9]+)?")
 TOTAL_RE = re.compile(r"\b(total(?:l?ing|ed)?|in total|sum(?:ming)? to|combined)\b", re.I)
 EXECUTED_RE = re.compile(r"\b((?:actions?|containment|steps?|measures?)\s+(?:(?:were|have been|has been|was)\s+)?"
@@ -98,8 +99,10 @@ def fallback_briefing(cat: str, sev: str, decision: str, ev: dict, why: list[str
     return text
 
 
-def briefing_problems(text: str, ev: dict, incident: dict) -> list[str]:
+def briefing_problems(text: str, ev: dict, incident: dict, final_category: str | None = None) -> list[str]:
     probs = []
+    if final_category and final_category != "false_positive" and FP_RE.search(text or ""):
+        probs.append(f"briefing calls the incident a false positive, but the final category is {final_category}")
     n = word_count(text or "")
     if not 30 <= n <= 70:
         probs.append(f"briefing has {n} words; must be 35-60")
@@ -254,8 +257,15 @@ class TriageAgent:
         # ── Citations: policy-derived + LLM-suggested (only codes that exist in the handbook) ──
         cites = P.citations(cat, sev, base["rules"] if cat == base["category"] else [P.CATEGORY_RULE[cat]],
                             self.corpus.policy_rule_codes).split(";")
-        for c in (llm_out or {}).get("policy_citations", []):
+        llm_cites = (llm_out or {}).get("policy_citations", [])
+        if agree and not agree["category"] and llm_cites:
+            trace["guardrails"].append("Dropped Gemini's citations: they supported a category the guardrails overruled.")
+            llm_cites = []
+        for c in llm_cites:
             c = str(c).strip()
+            if c.startswith("NOVAPAY-CAT-") and c != P.CATEGORY_RULE[cat] and c not in cites:
+                trace["guardrails"].append(f"Dropped citation '{c}': category rule does not match final category {cat}.")
+                continue
             if c in self.corpus.policy_rule_codes and c not in cites and len(cites) < 6:
                 cites.append(c)
             elif c and c not in self.corpus.policy_rule_codes:
@@ -268,7 +278,9 @@ class TriageAgent:
 
         # ── Briefing: LLM text if it passes checks, one repair attempt, else deterministic ──
         briefing = (llm_out or {}).get("analyst_briefing", "")
-        probs = briefing_problems(briefing, ev, inc) if llm_out else ["no LLM output"]
+        probs = briefing_problems(briefing, ev, inc, cat) if llm_out else ["no LLM output"]
+        if agree and not (agree["category"] and agree["decision"]):
+            probs.append("Gemini's briefing argued for a classification the guardrails overruled")
         if llm_out and probs:
             try:
                 fix = self.llm.generate_json(
@@ -279,7 +291,7 @@ class TriageAgent:
                     "Rewrite the analyst_briefing (35-60 words, only facts from the evidence). "
                     "Repeat the other fields unchanged.",
                     self.schema, tag=f"{ev['request_id']}:briefing_repair")
-                if not briefing_problems(fix.get("analyst_briefing", ""), ev, inc):
+                if not briefing_problems(fix.get("analyst_briefing", ""), ev, inc, cat):
                     trace["guardrails"].append(f"Briefing repaired after: {'; '.join(probs)}")
                     briefing, probs = fix["analyst_briefing"], []
             except LLMError:

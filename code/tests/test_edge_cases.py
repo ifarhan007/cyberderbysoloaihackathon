@@ -308,3 +308,35 @@ class LLMActionScopeTests(unittest.TestCase):
                  {"action": "NOTIFY_CISO"}]
         got = [a["action"] for a in merge_actions(base, extra, "api_abuse")]
         self.assertEqual(got, ["RATE_LIMIT_API", "MONITOR_72H", "NOTIFY_CISO"])
+
+
+class OverruledBriefingTests(unittest.TestCase):
+    """Live-demo bug: Gemini called DEMO-02 a false positive, guardrails overruled it to account_takeover/P1,
+    but the console still showed Gemini's briefing ending '...classified as a false positive'."""
+
+    def test_overruled_llm_briefing_is_replaced(self):
+        class FakeLLM(GeminiClient):
+            def generate_json(self, *a, **k):
+                return {"incident_category": "false_positive", "severity": "P4_LOW",
+                        "triage_decision": "close_false_positive", "evidence_summary": "", "reasoning": "",
+                        "description_trustworthy": True, "containment_actions": [], "policy_citations": [],
+                        "analyst_briefing": "Employee EMP-004 logged in from IP 118.201.14.9 with 2 MFA failures "
+                        "and a $7,200 transfer 10 minutes later. The registry confirms an active travel flag for "
+                        "Singapore during a fintech summit, so this behavior is fully explained and classified "
+                        "as a false positive under the policy handbook."}
+        agent = TriageAgent(CORPUS, FakeLLM(api_key="fake"), use_llm=True)
+        row, trace = agent.triage(EDGE_CASES[1][0])          # EDGE-02: travel flag hiding an ATO
+        self.assertEqual(row["incident_category"], "account_takeover")
+        self.assertNotRegex(row["analyst_briefing"].lower(), r"false[ -]positive")
+        self.assertTrue(any("overruled" in g or "deterministic" in g for g in trace["guardrails"]))
+
+    def test_overruled_llm_citations_are_dropped(self):
+        class FakeLLM(GeminiClient):
+            def generate_json(self, *a, **k):
+                return {"incident_category": "false_positive", "severity": "P4_LOW",
+                        "triage_decision": "close_false_positive", "evidence_summary": "", "reasoning": "",
+                        "description_trustworthy": True, "containment_actions": [],
+                        "policy_citations": ["NOVAPAY-CAT-09", "PCI-DSS-12.10"], "analyst_briefing": "x"}
+        row, _ = TriageAgent(CORPUS, FakeLLM(api_key="fake"), use_llm=True).triage(EDGE_CASES[1][0])
+        self.assertNotIn("NOVAPAY-CAT-09", row["policy_citations"])
+        self.assertIn("NOVAPAY-CAT-01", row["policy_citations"])
