@@ -74,7 +74,7 @@ Optional: `set RUN_LLM_TESTS=1` before the unittest command runs the edge cases 
 | `tests/test_edge_cases.py` | custom edge cases + regression tests for starter-code bugs |
 | `package_submission.py` | builds `../code.zip` (excludes .env, venv, caches, data) |
 
-## Viva cheat-sheet
+## Design decisions & FAQ
 
 **Q: Where is the AI?** `soc/llm.py` sends Gemini the handbook, the verified evidence and the
 untrusted description, and gets back schema-enforced JSON (category, severity, decision, plan,
