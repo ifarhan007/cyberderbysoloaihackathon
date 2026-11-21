@@ -20,7 +20,7 @@ Read the full brief → [`problem_statement.md`](problem_statement.md)
 ## 📦 What's in This Repo
 
 ```
-hackathon_challenge_pack/
+cyberderbysoloaihackathon/
 ├── problem_statement.md          ← Full challenge specification (read this first)
 ├── README.md                     ← You are here
 │
@@ -50,27 +50,30 @@ hackathon_challenge_pack/
 ## ⚡ Quickstart
 
 ```bash
-# 1. Clone this repo
-git clone <repo-url>
-cd hackathon_challenge_pack/code
+# 1. Follow the organizer on GitHub (required)
+#    https://github.com/luminancexe
 
-# 2. Create virtual environment
+# 2. Clone this repo
+git clone https://github.com/luminancexe/cyberderbysoloaihackathon.git
+cd cyberderbysoloaihackathon/code
+
+# 3. Create virtual environment
 python -m venv venv
 venv\Scripts\activate        # Windows
 # source venv/bin/activate   # macOS / Linux
 
-# 3. Install dependencies
+# 4. Install dependencies
 pip install -r requirements.txt
 
-# 4. Add your API key
+# 5. Add your API key
 cp .env.example .env
 # Open .env and add your key (Gemini / OpenAI / Claude / etc.)
 
-# 5. Run your agent
+# 6. Run your agent
 python agent.py
 # → generates ../output.csv
 
-# 6. Validate your output
+# 7. Validate your output
 python evaluate.py
 # → must show: Schema valid: YES | Output rows: 10/10
 ```
@@ -79,7 +82,7 @@ python evaluate.py
 
 ## 📤 What to Submit (by 03:00 PM)
 
-Upload **3 files** to the submission portal before the 3:00 PM code freeze:
+Upload **3 files** to the Devpost submission portal before the 3:00 PM code freeze:
 
 | # | File | What it is |
 |:---:|---|---|
@@ -104,6 +107,7 @@ Upload **3 files** to the submission portal before the 3:00 PM code freeze:
 
 ## 🛠️ Rules at a Glance
 
+- ⭐ **Follow the organizer on GitHub** — [github.com/luminancexe](https://github.com/luminancexe) *(required before cloning)*
 - 🔒 **Solo only** — no teams, no sharing prompts or code during the sprint
 - 📁 **Local corpus only** — your agent reads from `data/` only, no live web lookups
 - 🚫 **No hardcoded answers** — all predictions must come from reproducible agent execution
@@ -130,7 +134,8 @@ Rankings announced at the **Grand Award Ceremony**:
 📅 **Tuesday, 24 November 2026 · 03:35 PM – 05:00 PM**  
 📍 12th Floor Hall, UCSI University Bangladesh Campus
 
-**Prizes:** Champion · 1st Runner-Up · 2nd Runner-Up · Accredited Certificates · Prize Money
+**Prizes:** Champion · 1st Runner-Up · 2nd Runner-Up · Accredited Certificates · Prize Money  
+**Bonus:** Top engineers earn direct internship/recruitment visibility with MindSpark & Sigmind
 
 ---
 
@@ -143,7 +148,7 @@ Rankings announced at the **Grand Award Ceremony**:
 | General Secretary | Farhana Akter |
 
 **Email:** uitc.bd@ucsiuniversity.edu.my  
-**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** linkedin.com/company/uitc-ucsi-bd
+**Facebook:** fb.com/uitcbd · **Instagram:** @uitc.bd · **LinkedIn:** UITC UCSI BD
 
 ---
 
