@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NovaPay SOC Console</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 4 7v8c0 7.2 5.1 13.4 12 15 6.9-1.6 12-7.8 12-15V7L16 2Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m11 16 3.5 3.5L21.5 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>
+      <div class="brand-name">NovaPay SOC</div>
+      <div class="brand-sub">Autonomous Incident Triage</div>
+    </div>
+  </div>
+  <div class="status" id="status"></div>
+  <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="currentColor"/></svg>
+  </button>
+</header>
+
+<div class="sim-banner">
+  <span class="dot"></span>Simulation mode: containment actions are <b>recommendations</b>; nothing is executed against real systems or accounts.
+</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-view="queue" role="tab">Incident Queue</button>
+  <button class="tab" data-view="samples" role="tab">Sample Validation</button>
+  <button class="tab" data-view="triage" role="tab">Triage New Incident</button>
+  <button class="tab" data-view="usage" role="tab">Engine &amp; Usage</button>
+</nav>
+
+<main>
+  <!-- Queue -->
+  <section class="view active" id="view-queue">
+    <div class="kpis" id="kpis"></div>
+    <div class="toolbar">
+      <div class="seg" id="sevFilter">
+        <button class="seg-btn active" data-sev="ALL">All</button>
+        <button class="seg-btn" data-sev="P1_CRITICAL">P1</button>
+        <button class="seg-btn" data-sev="P2_HIGH">P2</button>
+        <button class="seg-btn" data-sev="P3_MODERATE">P3</button>
+        <button class="seg-btn" data-sev="P4_LOW">P4</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Search ID, entity, category…" aria-label="Search incidents">
+      <select class="select" id="datasetSel" aria-label="Result set">
+        <option value="benchmark">Submitted output.csv</option>
+        <option value="ui">Latest console re-run</option>
+      </select>
+    </div>
+    <div class="split">
+      <aside class="queue" id="queue" aria-label="Incident queue"></aside>
+      <article class="detail" id="detail"></article>
+    </div>
+  </section>
+
+  <!-- Samples -->
+  <section class="view" id="view-samples">
+    <div class="section-head">
+      <h2>Labelled sample validation</h2>
+      <p>Agent predictions (<code>python agent.py --samples</code>) against <code>dataset/sample_output.csv</code> ground truth.</p>
+    </div>
+    <div id="sampleTable"></div>
+    <article class="detail standalone" id="sampleDetail"></article>
+  </section>
+
+  <!-- New triage -->
+  <section class="view" id="view-triage">
+    <div class="triage-grid">
+      <form class="card form" id="triageForm" autocomplete="off">
+        <div class="form-head">
+          <h2>Triage a new incident</h2>
+          <select class="select" id="templateSel" aria-label="Load template"><option value="">Load a template…</option></select>
+        </div>
+        <div class="row2">
+          <label>Request ID<input name="request_id" required maxlength="40" value="INC-NEW-001"></label>
+          <label>Timestamp (UTC)<input name="timestamp" required value="2026-11-16T10:00:00Z"></label>
+        </div>
+        <div class="row3">
+          <label>Source system
+            <select name="source_system">
+              <option>SIEM</option><option>FRAUD_ENGINE</option><option>AUTOMATED_SCAN</option>
+              <option>EMPLOYEE_REPORT</option><option>CUSTOMER_HOTLINE</option>
+            </select>
+          </label>
+          <label>Entity ID<input name="affected_entity_id" required maxlength="40" placeholder="EMP-005"></label>
+          <label>Entity type
+            <select name="entity_type">
+              <option>customer</option><option>employee</option><option>system</option><option>unknown</option>
+            </select>
+          </label>
+        </div>
+        <label>Incident description <span class="hint warn">untrusted input</span>
+          <textarea name="incident_description" rows="5" maxlength="5000" required placeholder="Free-text report from the detection source or reporter…"></textarea>
+        </label>
+        <label>Raw signal data <span class="hint">JSON object</span>
+          <textarea name="raw_signal_data" rows="6" class="mono" spellcheck="false">{}</textarea>
+        </label>
+        <div class="form-foot">
+          <label class="switch"><input type="checkbox" id="useLlm" checked><span class="slider"></span><span id="useLlmLabel">Use Gemini</span></label>
+          <button class="btn primary" id="triageBtn" type="submit">Run triage</button>
+        </div>
+        <div class="form-error" id="formError" role="alert"></div>
+      </form>
+      <article class="detail standalone" id="triageResult">
+        <div class="empty">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <p>Load a template or describe an incident, then run triage.<br>The full decision trail appears here.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Usage -->
+  <section class="view" id="view-usage">
+    <div id="usage"></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

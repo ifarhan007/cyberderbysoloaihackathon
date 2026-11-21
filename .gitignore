@@ -29,3 +29,8 @@ Thumbs.db
 # Submission archives (participants generate these)
 *.zip
 code.zip
+
+# Triage console re-runs (local only)
+code/evaluation/ui_benchmark.csv
+code/evaluation/trace_ui.json
+code/evaluation/usage_ui.json

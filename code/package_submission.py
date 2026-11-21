@@ -10,7 +10,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "code.zip"
 EXCLUDE_DIRS = {"venv", ".venv", "env", "__pycache__", "node_modules", ".git", "data", "dataset", ".pytest_cache"}
-EXCLUDE_FILES = {".env"}
+EXCLUDE_FILES = {".env", "ui_benchmark.csv", "trace_ui.json", "usage_ui.json"}
 
 files = []
 for p in sorted(HERE.rglob("*")):

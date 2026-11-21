@@ -54,12 +54,32 @@ python agent.py
 python evaluate.py
 python -m unittest discover -s tests -v
 python package_submission.py
+python app.py
 ```
 
 `notepad .env` → paste your key after `GEMINI_API_KEY=` and save.
 
 Optional: `set RUN_LLM_TESTS=1` before the unittest command runs the edge cases through Gemini too.
 `python agent.py --offline` runs without any API calls (deterministic engine only).
+
+## Triage console (web UI)
+
+```bat
+python app.py
+```
+Then open http://127.0.0.1:5000 in a browser. Press Ctrl+C in the terminal to stop it.
+
+| Tab | What it shows |
+|---|---|
+| Incident Queue | All 10 incidents sorted by severity, with KPIs. Each incident shows: briefing, decision pipeline (evidence → policy → Gemini → guardrails), verified evidence, Gemini's reasoning and agreement, guardrail log, containment timeline, flags and citations (hover a citation for its handbook title), and the original report with injection phrases highlighted |
+| Sample Validation | The 3 labelled samples against the ground truth |
+| Triage New Incident | Type an incident or load one: benchmark, samples, or adversarial demos (injection inside ransomware, travel flag hiding an account takeover, safe CDN burst) |
+| Engine & Usage | Model, API calls, tokens, latency, engine per incident, fallback chain; re-run the benchmark |
+
+* The API key stays on the server; the page only learns *whether* a key is set.
+* The server listens on 127.0.0.1 only, and request bodies are limited to 64 KB and validated.
+* All incident text is rendered as plain text, so injected HTML/JS can't execute.
+* The console never overwrites the submitted `output.csv`; re-runs go to `evaluation/ui_benchmark.csv`.
 
 ## Files
 | File | Role |
@@ -73,6 +93,7 @@ Optional: `set RUN_LLM_TESTS=1` before the unittest command runs the edge cases 
 | `evaluate.py` | schema validator + sample scoring (organiser's script, extended) |
 | `tests/test_edge_cases.py` | custom edge cases + regression tests for starter-code bugs |
 | `package_submission.py` | builds `../code.zip` (excludes .env, venv, caches, data) |
+| `app.py`, `web/` | local triage console (Flask backend + HTML/CSS/JS, no internet needed) |
 
 ## Design decisions & FAQ
 

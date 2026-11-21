@@ -155,7 +155,8 @@ class TriageAgent:
         base = P.classify(ev)
         ev["_why"] = base["why"]
         trace = {"request_id": ev["request_id"], "evidence": ev["notes"], "rule_engine": {
-            k: base[k] for k in ("category", "severity", "decisive", "why")}, "mode": self.mode, "guardrails": []}
+            k: base[k] for k in ("category", "severity", "decisive", "why")}, "mode": self.mode, "guardrails": [],
+            "injection_phrases": ev["injection_phrases"]}
 
         llm_out, llm_err = None, None
         if self.use_llm:
