@@ -319,15 +319,15 @@ def triage(req, threat_ips, phishing_domains, employees, history):
             infra_note,
             cred_note,
         ]
-        briefing_parts.append("Sender domain blocked and affected account notified per NOVAPAY-CAT-06.")
+        briefing_parts.append("Affected account placed under enhanced 72-hour monitoring and user notified per NOVAPAY-CAT-06.")
         if hist_note:
             briefing_parts.append(hist_note)
         return _row(rid,
             severity=sev, category="phishing", decision=dec,
             systems="email_gateway",
-            actions=[{"step":1,"action":"BLOCK_IP","target":f"domain:{sender}"},
-                     {"step":2,"action":"ALERT_SOC_TIER2" if confirmed else "MONITOR_72H"},
-                     {"step":3,"action":"NOTIFY_CUSTOMER" if etype=="customer" else "NOTIFY_CISO"}],
+            actions=[{"step":1,"action":"ALERT_SOC_TIER2" if confirmed else "MONITOR_72H"},
+                     {"step":2,"action":"NOTIFY_CUSTOMER" if etype=="customer" else "NOTIFY_CISO"},
+                     {"step":3,"action":"MONITOR_72H","target":eid}],
             citations="NOVAPAY-CAT-06" + (";PCI-DSS-10.2" if confirmed else ""),
             flags=flags, window="2hr" if confirmed else "24hr",
             briefing=" ".join(briefing_parts),
